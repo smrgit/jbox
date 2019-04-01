@@ -2,6 +2,8 @@ import logging
 import pandas as pd
 import time
 
+from google.cloud import bigquery
+
 ##--------------------------------------------------------------------------------------------------
 ## this function builds a query to get some basic information about a single
 ## field which is NOT of type RECORD, in the specified table
