@@ -159,7 +159,7 @@ def bbqCheckQueryResults ( qr ):
 ##--------------------------------------------------------------------------------------------------
 ##
 
-def bbqExploreFieldContents ( projectName, datasetName, tableName, excludedNames, excludedTypes ):
+def bbqExploreFieldContents ( bqclient, projectName, datasetName, tableName, excludedNames, excludedTypes ):
 
   dataset_ref = bqclient.dataset ( datasetName, project=projectName)
   table_ref = dataset_ref.table ( tableName )
@@ -247,7 +247,7 @@ def bbqExploreFieldContents ( projectName, datasetName, tableName, excludedNames
 ##--------------------------------------------------------------------------------------------------
 ##
 
-def bbqExploreRepeatedFields ( projectName, datasetName, tableName ):
+def bbqExploreRepeatedFields ( bqclient, projectName, datasetName, tableName ):
 
   dataset_ref = bqclient.dataset ( datasetName, project=projectName)
   table_ref = dataset_ref.table ( tableName )
@@ -326,7 +326,7 @@ def bbqExploreRepeatedFields ( projectName, datasetName, tableName ):
 ##--------------------------------------------------------------------------------------------------
 ##
 
-def bbqRunQuery ( client, qString, dryRun=False ):
+def bbqRunQuery ( bqclient, qString, dryRun=False ):
   
   logging.debug ( "\n in bbqRunQuery ... " )
   if ( dryRun ):
@@ -341,18 +341,18 @@ def bbqRunQuery ( client, qString, dryRun=False ):
   ## run the query
   try:
     logging.debug ( "    submitting query ... " )
-    query_job = client.query ( qString, job_config=job_config )
+    query_job = bqclient.query ( qString, job_config=job_config )
     logging.debug ( "    query job state: ", query_job.state )
   except:
     print ( "  FATAL ERROR: query submission failed " )
     return ( None )
   
   if ( not dryRun ):
-    query_job = client.get_job ( query_job.job_id )
+    query_job = bqclient.get_job ( query_job.job_id )
     logging.debug ( ' Job {} is currently in state {}'.format ( query_job.job_id, query_job.state ) )
     while ( query_job.state != "DONE" ):
       time.sleep ( 1 )
-      query_job = client.get_job ( query_job.job_id )
+      query_job = bqclient.get_job ( query_job.job_id )
       logging.debug ( ' Job {} is currently in state {}'.format ( query_job.job_id, query_job.state ) )
   
   ## return results as a dataframe (or an empty dataframe for a dry-run) 
