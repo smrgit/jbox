@@ -19,7 +19,7 @@ def bbqBuildFieldContentsQuery ( projectName, datasetName, tableName, fNameList,
   
   fdepth = len(fNameList)
   
-  print ( ' in bbqBuildFieldContentsQuery ... ', fNameList, fModeList, fdepth)
+  ## ## print ( ' in bbqBuildFieldContentsQuery ... ', fNameList, fModeList, fdepth)
   
   if ( fdepth == 1 ):
     fName = fNameList[0]
@@ -194,7 +194,7 @@ def bbqExploreFieldContents ( bqclient, projectName, datasetName, tableName, exc
                 ## build query to get summary information about field 'h' ...
                 qs = bbqBuildFieldContentsQuery ( projectName, datasetName, tableName, 
                                                  [f.name, g.name, h.name], [f.mode, g.mode, h.mode] )
-                print ( qs )
+                ## print ( qs )
                 qr = bbqRunQuery ( bqclient, qs )
                 if ( not bbqCheckQueryResults ( qr ) ):
                   print ( " Query failed ??? " )
@@ -213,7 +213,7 @@ def bbqExploreFieldContents ( bqclient, projectName, datasetName, tableName, exc
             ## build query to get summary information about field 'g' ...
             qs = bbqBuildFieldContentsQuery ( projectName, datasetName, tableName, 
                                              [f.name, g.name], [f.mode, g.mode] )
-            print ( qs )
+            ## print ( qs )
             qr = bbqRunQuery ( bqclient, qs )
             if ( not bbqCheckQueryResults ( qr ) ):
               print ( " Query failed ??? " )
@@ -230,7 +230,7 @@ def bbqExploreFieldContents ( bqclient, projectName, datasetName, tableName, exc
       if ( f.name not in excludedNames and f.field_type not in excludedTypes ):
         ## build query to get summary information about field 'f' ...
         qs = bbqBuildFieldContentsQuery ( projectName, datasetName, tableName, [f.name], [f.mode] )
-        print ( qs )
+        ## print ( qs )
         qr = bbqRunQuery ( bqclient, qs )
         if ( not bbqCheckQueryResults ( qr ) ):
           print ( " Query failed ??? " )
