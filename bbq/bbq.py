@@ -76,7 +76,7 @@ def bbqBuildFieldContentsQuery ( projectName, datasetName, tableName, fNameList,
     pMode  = fModeList[1]
     fMode  = fModeList[2]
 
-    print ( ' testing ... B ' )
+    print ( ' testing ... C ' )
     ## working on  ['variants', 'clinvar', 'orphanetIds'] ['REPEATED', 'REPEATED', 'REPEATED'] 3
 
     if ( fMode == "REPEATED" and pMode == "REPEATED" and gpMode == "REPEATED" ):
@@ -128,6 +128,8 @@ def bbqBuildRepeatedFieldsQuery ( projectName, datasetName, tableName, fNameList
   logging.debug ( fNameList, len(fNameList) )
   
   fdepth = len(fNameList)
+
+  print ( ' in bbqBuildRepeatedFieldsQuery ... ', fNameList, fModeList, fdepth)
   
   if ( fdepth == 1 ):
     fName = fNameList[0]
@@ -142,13 +144,17 @@ def bbqBuildRepeatedFieldsQuery ( projectName, datasetName, tableName, fNameList
       """.format(fName=fName, projectName=projectName, datasetName=datasetName, tableName=tableName)      
     else:
       ## construct a query for a non-REPEATED field
+      print ( '     should I even be getting here ??? (a) ' )
       qString = "TODO ???"
   
   elif ( fdepth == 2 ):
+
     pName = fNameList[0]
     fName = fNameList[1]
+
     pMode = fModeList[0]
     fMode = fModeList[1]
+
     if ( fMode == "REPEATED" ):
       qString = """
         WITH t1 AS ( SELECT ARRAY_LENGTH(u.{fName}) AS f FROM `{projectName}.{datasetName}.{tableName}` AS t, t.{pName} AS u )
@@ -156,9 +162,11 @@ def bbqBuildRepeatedFieldsQuery ( projectName, datasetName, tableName, fNameList
         GROUP BY 1 ORDER BY 2 DESC, 1
       """.format(pName=pName, fName=fName, projectName=projectName, datasetName=datasetName, tableName=tableName)      
     else:
+      print ( '     should I even be getting here ??? (b) ' )
       qString = "TODO ???"
       
   else:
+    print ( '     should I even be getting here ??? (c) ' )
     qString = "TODO"
   
   return ( qString )
@@ -208,6 +216,7 @@ def bbqExploreFieldContents ( bqclient, projectName, datasetName, tableName, exc
 
           ## loop over all fields within 'g'
           ## (we are assuming no more RECORDs at or beyond this depth)
+          ## TODO: need to be able to handle another layer ... arghhhh ...
           for h in g.fields:
 
             if ( h.field_type=="RECORD" ):
@@ -279,7 +288,7 @@ def bbqExploreRepeatedFields ( bqclient, projectName, datasetName, tableName ):
   table = bqclient.get_table ( table_ref )
   
   numRF = 0
-  
+
   ## outer loop over all fields in schema
   for f in table.schema:  
 
@@ -317,7 +326,6 @@ def bbqExploreRepeatedFields ( bqclient, projectName, datasetName, tableName ):
         ## if this field is also a RECORD, dig further ...
         if ( g.field_type=="RECORD" ):
 
-      
           if ( g.mode != "REPEATED" ):
             print ( f'    > {g.name:22}  {g.field_type:10}  {g.mode:10}' )          
           
