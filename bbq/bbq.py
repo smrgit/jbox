@@ -19,7 +19,7 @@ def bbqBuildFieldContentsQuery ( projectName, datasetName, tableName, fNameList,
   
   fdepth = len(fNameList)
   
-  ## ## print ( ' in bbqBuildFieldContentsQuery ... ', fNameList, fModeList, fdepth)
+  print ( ' in bbqBuildFieldContentsQuery ... ', fNameList, fModeList, fdepth)
   
   if ( fdepth == 1 ):
     fName = fNameList[0]
