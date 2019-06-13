@@ -76,11 +76,17 @@ def bbqBuildFieldContentsQuery ( projectName, datasetName, tableName, fNameList,
     pMode  = fModeList[1]
     fMode  = fModeList[2]
 
-    print ( ' testing ... A ' )
+    print ( ' testing ... B ' )
+    ## working on ['variants', 'dbsnp', 'ids'] ['REPEATED', 'NULLABLE', 'REPEATED'] 3
     
-    if ( fMode == "REPEATED" ):
-      print ( gp, p, f, fMode )
-      print ( " TODO: define query !!! ")
+    if ( fMode == "REPEATED" and pMode == "NULLABLE" ):
+      ## print ( gp, p, f, fMode )
+      qString = """
+        WITH t1 AS ( SELECT v AS f FROM `{projectName}.{datasetName}.{tableName}` AS t, t.{gpName} AS u, u.{pName}.{fName} AS v )
+        SELECT f, COUNT(*) AS n FROM t1
+        GROUP BY 1 ORDER BY 2 DESC, 1
+      """.format(gpName=gp, pName=p, fName=f, projectName=projectName, datasetName=datasetName, tableName=tableName)                 
+
     elif ( pMode == "REPEATED" ):
       ## print ( gp, p, f, fMode )
       qString = """
