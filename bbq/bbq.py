@@ -75,6 +75,8 @@ def bbqBuildFieldContentsQuery ( projectName, datasetName, tableName, fNameList,
     gpMode = fModeList[0]
     pMode  = fModeList[1]
     fMode  = fModeList[2]
+
+    print ( ' testing ... A ' )
     
     if ( fMode == "REPEATED" ):
       print ( gp, p, f, fMode )
