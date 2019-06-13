@@ -77,9 +77,17 @@ def bbqBuildFieldContentsQuery ( projectName, datasetName, tableName, fNameList,
     fMode  = fModeList[2]
 
     print ( ' testing ... B ' )
-    ## working on ['variants', 'dbsnp', 'ids'] ['REPEATED', 'NULLABLE', 'REPEATED'] 3
+    ## working on  ['variants', 'clinvar', 'orphanetIds'] ['REPEATED', 'REPEATED', 'REPEATED'] 3
+
+    if ( fMode == "REPEATED" and pMode == "REPEATED" and gpMode == "REPEATED" ):
+      ## print ( gp, p, f, fMode )
+      qString = """
+        WITH t1 AS ( SELECT w AS f FROM `{projectName}.{datasetName}.{tableName}` AS t, t.{gpName} AS u, u.{pName} AS v, v.{fName} AS w )
+        SELECT f, COUNT(*) AS n FROM t1
+        GROUP BY 1 ORDER BY 2 DESC, 1
+      """.format(gpName=gp, pName=p, fName=f, projectName=projectName, datasetName=datasetName, tableName=tableName)                 
     
-    if ( fMode == "REPEATED" and pMode == "NULLABLE" ):
+    elif ( fMode == "REPEATED" and pMode == "NULLABLE" ):
       ## print ( gp, p, f, fMode )
       qString = """
         WITH t1 AS ( SELECT v AS f FROM `{projectName}.{datasetName}.{tableName}` AS t, t.{gpName} AS u, u.{pName}.{fName} AS v )
@@ -103,6 +111,8 @@ def bbqBuildFieldContentsQuery ( projectName, datasetName, tableName, fNameList,
       """.format(gpName=gp, pName=p, fName=f, projectName=projectName, datasetName=datasetName, tableName=tableName)                 
       
   else:
+    print ( ' I do not know how to handle this case yet... ' )
+    print ( ' in bbqBuildFieldContentsQuery ... ', fNameList, fModeList, fdepth)
     qString = "TODO"
   
   return ( qString )
@@ -201,7 +211,7 @@ def bbqExploreFieldContents ( bqclient, projectName, datasetName, tableName, exc
           for h in g.fields:
 
             if ( h.field_type=="RECORD" ):
-              logging.error ( " RECORD found at {}>{}>{} ??? ", f.name, g.name, h.name )
+              logging.error ( " RECORD found at {}>{}>{} ??? ".format(f.name, g.name, h.name) )
               
             else:
             
