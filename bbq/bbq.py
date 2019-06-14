@@ -214,7 +214,7 @@ def bbqBuildRepeatedFieldsQuery ( projectName, datasetName, tableName, fNameList
       """.format(ggpName=ggpName, gpName=gpName, pName=pName, fName=fName, projectName=projectName, datasetName=datasetName, tableName=tableName) 
 
     else:
-      print " do not know how to handle this one yet ... "
+      print ( " do not know how to handle this one yet ... " )
 
   else:
     print ( ' getting in too DEEP !!! ' )
