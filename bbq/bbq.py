@@ -12,14 +12,14 @@ from google.cloud import bigquery
 ## and a 'grandparent', in which case the names are all contained in the
 ## input fNameList, with the child at the end of the list
 
-def bbqBuildFieldContentsQuery ( projectName, datasetName, tableName, fNameList, fModeList ):
+def bbqBuildFieldContentsQuery ( projectName, datasetName, tableName, fNameList, fTypeList, fModeList ):
   
   logging.debug ( projectName, datasetName, tableName )
   logging.debug ( fNameList, len(fNameList) )
   
   fdepth = len(fNameList)
   
-  print ( ' in bbqBuildFieldContentsQuery ... ', fNameList, fModeList, fdepth)
+  print ( ' in bbqBuildFieldContentsQuery ... ', fNameList, fTypeList, fModeList, fdepth)
   
   if ( fdepth == 1 ):
     fName = fNameList[0]
@@ -76,7 +76,7 @@ def bbqBuildFieldContentsQuery ( projectName, datasetName, tableName, fNameList,
     pMode  = fModeList[1]
     fMode  = fModeList[2]
 
-    print ( ' testing ... C ' )
+    print ( ' testing ... E ' )
     ## working on  ['variants', 'clinvar', 'orphanetIds'] ['REPEATED', 'REPEATED', 'REPEATED'] 3
 
     if ( fMode == "REPEATED" and pMode == "REPEATED" and gpMode == "REPEATED" ):
@@ -122,14 +122,14 @@ def bbqBuildFieldContentsQuery ( projectName, datasetName, tableName, fNameList,
 ## this function builds a query to get some basic information about a single
 ## field which is of type RECORD
 
-def bbqBuildRepeatedFieldsQuery ( projectName, datasetName, tableName, fNameList, fModeList ):
+def bbqBuildRepeatedFieldsQuery ( projectName, datasetName, tableName, fNameList, fTypeList, fModeList ):
   
   logging.debug ( projectName, datasetName, tableName )
   logging.debug ( fNameList, len(fNameList) )
   
   fdepth = len(fNameList)
 
-  print ( ' in bbqBuildRepeatedFieldsQuery ... ', fNameList, fModeList, fdepth)
+  print ( ' in bbqBuildRepeatedFieldsQuery ... ', fNameList, fTypeList, fModeList, fdepth)
   
   if ( fdepth == 1 ):
     fName = fNameList[0]
@@ -164,6 +164,27 @@ def bbqBuildRepeatedFieldsQuery ( projectName, datasetName, tableName, fNameList
     else:
       print ( '     should I even be getting here ??? (b) ' )
       qString = "TODO ???"
+
+  elif ( fdepth == 3 ):
+    ## ['variants', 'dbsnp', 'ids'] ['REPEATED', 'NULLABLE', 'REPEATED'] 3
+
+    gpName = fNameList[0]
+    pName = fNameList[1]
+    fName = fNameList[2]
+
+    gpMode = fModeList[0]
+    pMode = fModeList[1]
+    fMode = fModeList[2]
+
+    if ( fMode == "REPEATED" ):
+      qString = """
+        WITH t1 AS ( SELECT ARRAY_LENGTH(u.{fName}) AS f FROM `{projectName}.{datasetName}.{tableName}` AS t, t.{pName} AS u )
+        SELECT f, COUNT(*) AS n FROM t1
+        GROUP BY 1 ORDER BY 2 DESC, 1
+      """.format(gpName=gpName, pName=pName, fName=fName, projectName=projectName, datasetName=datasetName, tableName=tableName)      
+    else:
+      print ( '     should I even be getting here ??? (b) ' )
+      qString = "TODO ???"
       
   else:
     print ( '     should I even be getting here ??? (c) ' )
@@ -190,6 +211,8 @@ def bbqCheckQueryResults ( qr ):
 
 
 ##--------------------------------------------------------------------------------------------------
+## there is probably a more elegant way to do this with a recursive function, but that will
+## have to wait for another time ...
 ##
 
 def bbqExploreFieldContents ( bqclient, projectName, datasetName, tableName, excludedNames, excludedTypes ):
@@ -215,19 +238,49 @@ def bbqExploreFieldContents ( bqclient, projectName, datasetName, tableName, exc
           print ( f'    > {g.name:22}  {g.field_type:10}  {g.mode:10} [{len(g.fields)}] ' )    
 
           ## loop over all fields within 'g'
-          ## (we are assuming no more RECORDs at or beyond this depth)
-          ## TODO: need to be able to handle another layer ... arghhhh ...
           for h in g.fields:
 
+            ## if this field is also a RECORD, dig further ...
             if ( h.field_type=="RECORD" ):
-              logging.error ( " RECORD found at {}>{}>{} ??? ".format(f.name, g.name, h.name) )
-              
+
+              print ( f'    >    > {h.name:14}  {h.field_type:10}  {h.mode:10} [{len(h.fields)}] ' )    
+
+              ## loop over all fields within 'h'
+              for j in h.fields:
+
+                ## if this field is also a RECORD, bail!
+                if ( j.field_type=="RECORD" ):
+                  logging.error ( " RECORD found at {}>{}>{}>{} ??? ".format(f.name, g.name, h.name, j.name) )
+                ## if j is NOT a RECORD:
+                else:
+
+                  if ( j.name not in excludedNames and j.field_type not in excludedTypes ):
+                    ## build query to get summary information about field 'h' ...
+                    qs = bbqBuildFieldContentsQuery ( projectName, datasetName, tableName, 
+                                                     [f.name, g.name, h.name, j.name], 
+                                                     [f.field_type, g.field_type, h.field_type, j.field_type],
+                                                     [f.mode, g.mode, h.mode, j.mode] )
+                    ## print ( qs )
+                    qr = bbqRunQuery ( bqclient, qs )
+                    if ( not bbqCheckQueryResults ( qr ) ):
+                      print ( " Query failed ??? " )
+                      print ( qs )
+                    else:
+                      sqr = bbqSummarizeQueryResults ( qr )
+                      if ( len(sqr) > 2 ): print ( f'            > {j.name:14}  {j.field_type:10}  {j.mode:10}', sqr )   
+                  else:
+                    print ( f'        > {j.name:18}  {j.field_type:10}  {j.mode:10} (this field was excluded)' )
+                
+                    
+            ## if h is NOT a RECORD:  
             else:
             
               if ( h.name not in excludedNames and h.field_type not in excludedTypes ):                
                 ## build query to get summary information about field 'h' ...
                 qs = bbqBuildFieldContentsQuery ( projectName, datasetName, tableName, 
-                                                 [f.name, g.name, h.name], [f.mode, g.mode, h.mode] )
+                                                 [f.name, g.name, h.name], 
+                                                 [f.field_type, g.field_type, h.field_type],
+                                                 [f.mode, g.mode, h.mode] )
                 ## print ( qs )
                 qr = bbqRunQuery ( bqclient, qs )
                 if ( not bbqCheckQueryResults ( qr ) ):
@@ -246,7 +299,9 @@ def bbqExploreFieldContents ( bqclient, projectName, datasetName, tableName, exc
           if ( g.name not in excludedNames and g.field_type not in excludedTypes ):
             ## build query to get summary information about field 'g' ...
             qs = bbqBuildFieldContentsQuery ( projectName, datasetName, tableName, 
-                                             [f.name, g.name], [f.mode, g.mode] )
+                                             [f.name, g.name], 
+                                             [f.field_type, g.field_type],
+                                             [f.mode, g.mode] )
             ## print ( qs )
             qr = bbqRunQuery ( bqclient, qs )
             if ( not bbqCheckQueryResults ( qr ) ):
@@ -263,7 +318,8 @@ def bbqExploreFieldContents ( bqclient, projectName, datasetName, tableName, exc
       
       if ( f.name not in excludedNames and f.field_type not in excludedTypes ):
         ## build query to get summary information about field 'f' ...
-        qs = bbqBuildFieldContentsQuery ( projectName, datasetName, tableName, [f.name], [f.mode] )
+        qs = bbqBuildFieldContentsQuery ( projectName, datasetName, tableName, 
+                                          [f.name], [f.field_type], [f.mode] )
         ## print ( qs )
         qr = bbqRunQuery ( bqclient, qs )
         if ( not bbqCheckQueryResults ( qr ) ):
@@ -295,7 +351,7 @@ def bbqExploreRepeatedFields ( bqclient, projectName, datasetName, tableName ):
     if ( f.mode=="REPEATED" ):
       numRF += 1
       qs = bbqBuildRepeatedFieldsQuery ( projectName, datasetName, tableName, 
-                                        [f.name], [f.mode] )
+                                        [f.name], [f.field_type], [f.mode] )
       qr = bbqRunQuery ( bqclient, qs )
       sqr = bbqSummarizeQueryResults ( qr )
       if ( sqr[0]==1 ):
@@ -315,7 +371,9 @@ def bbqExploreRepeatedFields ( bqclient, projectName, datasetName, tableName ):
         if ( g.mode=="REPEATED" ):
           numRF += 1
           qs = bbqBuildRepeatedFieldsQuery ( projectName, datasetName, tableName, 
-                                            [f.name, g.name], [f.mode, g.mode] )
+                                            [f.name, g.name], 
+                                            [f.field_type, g.field_type],
+                                            [f.mode, g.mode] )
           qr = bbqRunQuery ( bqclient, qs )
           sqr = bbqSummarizeQueryResults ( qr )
           if ( sqr[0] == 1 ):
@@ -341,7 +399,9 @@ def bbqExploreRepeatedFields ( bqclient, projectName, datasetName, tableName ):
               if ( h.mode=="REPEATED" ):
                 numRF += 1
                 qs = bbqBuildRepeatedFieldsQuery ( projectName, datasetName, tableName, 
-                                                  [f.name, g.name, h.name], [f.mode, g.mode, h.mode] )
+                                                  [f.name, g.name, h.name], 
+                                                  [f.field_type, g.field_type, h.field_type],
+                                                  [f.mode, g.mode, h.mode] )
                 qr = bbqRunQuery ( bqclient, qs )
                 sqr = bbqSummarizeQueryResults ( qr )
                 if ( sqr[0] == 1 ):
