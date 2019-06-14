@@ -76,7 +76,7 @@ def bbqBuildFieldContentsQuery ( projectName, datasetName, tableName, fNameList,
     pMode  = fModeList[1]
     fMode  = fModeList[2]
 
-    print ( ' testing ... E ' )
+    print ( ' testing ... F ' )
     ## working on  ['variants', 'clinvar', 'orphanetIds'] ['REPEATED', 'REPEATED', 'REPEATED'] 3
 
     if ( fMode == "REPEATED" and pMode == "REPEATED" and gpMode == "REPEATED" ):
@@ -112,7 +112,7 @@ def bbqBuildFieldContentsQuery ( projectName, datasetName, tableName, fNameList,
       
   else:
     print ( ' I do not know how to handle this case yet... ' )
-    print ( ' in bbqBuildFieldContentsQuery ... ', fNameList, fModeList, fdepth)
+    print ( ' in bbqBuildFieldContentsQuery ... ', fNameList, fTypeList, fModeList, fdepth)
     qString = "TODO"
   
   return ( qString )
@@ -188,6 +188,8 @@ def bbqBuildRepeatedFieldsQuery ( projectName, datasetName, tableName, fNameList
       
   else:
     print ( '     should I even be getting here ??? (c) ' )
+    print ( ' >>> I do not know how to handle this yet <<< ' )
+    print ( ' in bbqBuildRepeatedFieldsQuery ... ', fNameList, fTypeList, fModeList, fdepth)
     qString = "TODO"
   
   return ( qString )
@@ -454,16 +456,22 @@ def bbqRunQuery ( bqclient, qString, dryRun=False ):
   
   ## return results as a dataframe (or an empty dataframe for a dry-run) 
   if ( not dryRun ):
-    df = query_job.to_dataframe()
-    if ( query_job.total_bytes_processed==0 ):       
-      logging.debug ( "    the results for this query were previously cached " )
-    else:
-      logging.debug ( "    this query processed {} bytes ".format(query_job.total_bytes_processed) )
+    try:
+      df = query_job.to_dataframe()
+      if ( query_job.total_bytes_processed==0 ):       
+        logging.debug ( "    the results for this query were previously cached " )
+      else:
+        logging.debug ( "    this query processed {} bytes ".format(query_job.total_bytes_processed) )
     
-    ## if ( len(df) < 1 ): logging.warning ( "  WARNING: this query returned NO results ")
+      ## if ( len(df) < 1 ): logging.warning ( "  WARNING: this query returned NO results ")
     
-    logging.debug ( " --> returning dataframe ... ", len(df) )
-    return ( df )
+      logging.debug ( " --> returning dataframe ... ", len(df) )
+      return ( df )
+
+    except:
+      print ( "   FATAL ERROR: failed to get results as a data-frame ??? " )
+      print ( qString )
+      return ( None )
     
   else:
     logging.info ( "    if not cached, this query will process {} bytes ".format(query_job.total_bytes_processed) )
