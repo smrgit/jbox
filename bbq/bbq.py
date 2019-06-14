@@ -162,6 +162,7 @@ def bbqBuildRepeatedFieldsQuery ( projectName, datasetName, tableName, fNameList
         GROUP BY 1 ORDER BY 2 DESC, 1
       """.format(pName=pName, fName=fName, projectName=projectName, datasetName=datasetName, tableName=tableName)      
     else:
+      ## construct a query for a non-REPEATED field
       print ( '     should I even be getting here ??? (b) ' )
       qString = "TODO ???"
 
@@ -350,9 +351,10 @@ def bbqExploreRepeatedFields ( bqclient, projectName, datasetName, tableName ):
   
   numRF = 0
 
-  ## outer loop over all fields in schema
+  ## outer loop over all fields F in TABLE schema
   for f in table.schema:  
 
+    ## if F is a REPEATED field ...
     if ( f.mode=="REPEATED" ):
       numRF += 1
       qs = bbqBuildRepeatedFieldsQuery ( projectName, datasetName, tableName, 
@@ -364,15 +366,16 @@ def bbqExploreRepeatedFields ( bqclient, projectName, datasetName, tableName ):
       else:  
         print ( f'{f.name:28}  {f.field_type:10}  {f.mode:10}', sqr )
     
-    ## if this field is a RECORD, then dig down ...
+    ## if F is a RECORD ... dig further ...
     if ( f.field_type=="RECORD" ):
       
       if ( f.mode != "REPEATED" ):
         print ( f'{f.name:28}  {f.field_type:10}  {f.mode:10}' )
 
-      ## loop over all fields within 'f'
+      ## next loop over all fields G in record F:
       for g in f.fields:     
 
+        ## if G is a REPEATED field ...
         if ( g.mode=="REPEATED" ):
           numRF += 1
           qs = bbqBuildRepeatedFieldsQuery ( projectName, datasetName, tableName, 
@@ -386,18 +389,55 @@ def bbqExploreRepeatedFields ( bqclient, projectName, datasetName, tableName ):
           else:
             print ( f'    > {g.name:22}  {g.field_type:10}  {g.mode:10}', sqr )        
         
-        ## if this field is also a RECORD, dig further ...
+        ## if G is a RECORD ... dig further ...
         if ( g.field_type=="RECORD" ):
 
           if ( g.mode != "REPEATED" ):
             print ( f'    > {g.name:22}  {g.field_type:10}  {g.mode:10}' )          
           
-          ## loop over all fields within 'g'
-          ## (we are assuming no more RECORDs at this depth)
+          ## next loop over all fields H in record G:
           for h in g.fields:
 
+            ## if H is a REPEATED field ...
+            if ( h.mode=="REPEATED" ):
+              numRF += 1
+              qs = bbqBuildRepeatedFieldsQuery ( projectName, datasetName, tableName,
+                                                 [f.name, g.name, h.name],
+                                                 [f.field_type, g.field_type, h.field_type],
+                                                 [f.mode, g.mode, h.mode] )
+              qr = bbqRunQuery ( bqclient, qs )
+              sqr = bbqSummarizeQueryResults ( qr )
+              if ( sqr[0] == 1 ):
+                print ( f'    > {h.name:22}  {h.field_type:10}  {h.mode:10} always repeated {sqr[3]} time(s)' )
+              else:
+                print ( f'    > {h.name:22}  {h.field_type:10}  {h.mode:10}', sqr )        
+
+            ## if H is a RECORD ... dig further ...
             if ( h.field_type=="RECORD" ):
-              logging.error ( " RECORD found at {}>{}>{} ??? ", f.name, g.name, h.name )
+
+              if ( h.mode != "REPEATED" ):
+                print ( f'    > {h.name:22}  {h.field_type:10}  {h.mode:10}' )          
+
+              ## next loop over all fields J in record H:
+              for j in h.fields:
+
+                ## if J is a REPEATED field ...
+                if ( j.mode=="REPEATED" ):
+                  numRF += 1
+                  qs = bbqBuildRepeatedFieldsQuery ( projectName, datasetName, tableName,
+                                                     [f.name, g.name, h.name, j.name],
+                                                     [f.field_type, g.field_type, h.field_type, j.field_type],
+                                                     [f.mode, g.mode, h.mode, j.mode] )
+                  qr = bbqRunQuery ( bqclient, qs )
+                  sqr = bbqSummarizeQueryResults ( qr )
+                  if ( sqr[0] == 1 ):
+                    print ( f'    > {j.name:22}  {j.field_type:10}  {j.mode:10} always repeated {sqr[3]} time(s)' )
+                  else:
+                    print ( f'    > {j.name:22}  {j.field_type:10}  {j.mode:10}', sqr )        
+
+                ## hope and pray that J is not a RECORD ...
+                if ( j.field_type=="RECORD" ):
+                  logging.error ( " RECORD found at {}>{}>{}>{} ??? ".format(f.name, g.name, h.name, j.name) )
               
             else:
               
@@ -421,6 +461,7 @@ def bbqExploreRepeatedFields ( bqclient, projectName, datasetName, tableName ):
   return ()
 
 
+          ## (we are assuming no more RECORDs at this depth)
 ##--------------------------------------------------------------------------------------------------
 ##
 
