@@ -420,6 +420,10 @@ def bbqExploreRepeatedFields ( bqclient, projectName, datasetName, tableName ):
 ##
 
 def bbqRunQuery ( bqclient, qString, dryRun=False ):
+
+  if ( qString.upper().find("SELECT") < 0 ):
+    logging.error ( " >>>> bad query string <<< " )
+    return ( None )
   
   logging.debug ( "\n in bbqRunQuery ... " )
   if ( dryRun ):
