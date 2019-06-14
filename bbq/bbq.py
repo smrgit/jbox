@@ -19,13 +19,13 @@ def bbqBuildFieldContentsQuery ( projectName, datasetName, tableName, fNameList,
   
   fdepth = len(fNameList)
   
-  print ( ' in bbqBuildFieldContentsQuery ... ', fNameList, fTypeList, fModeList, fdepth)
+  ## print ( ' in bbqBuildFieldContentsQuery ... ', fNameList, fTypeList, fModeList, fdepth)
   
   if ( fdepth == 1 ):
     fName = fNameList[0]
     fMode = fModeList[0]
     
-    if ( fMode == "REPEATED" ):
+    if ( fMode=="REPEATED" ):
       ## construct a query for a REPEATED field
       qString = """
         WITH t1 AS ( SELECT f FROM `{projectName}.{datasetName}.{tableName}` AS t, t.{fName} AS f )
@@ -47,13 +47,13 @@ def bbqBuildFieldContentsQuery ( projectName, datasetName, tableName, fNameList,
     pMode = fModeList[0]
     fMode = fModeList[1]
     
-    if ( fMode == "REPEATED" ):
+    if ( fMode=="REPEATED" ):
       qString = """
         WITH t1 AS ( SELECT f FROM `{projectName}.{datasetName}.{tableName}` AS t, t.{pName} AS u, u.{fName} AS f )
         SELECT f, COUNT(*) AS n FROM t1
         GROUP BY 1 ORDER BY 2 DESC, 1
       """.format(pName=pName, fName=fName, projectName=projectName, datasetName=datasetName, tableName=tableName)
-    elif ( pMode == "REPEATED" ):
+    elif ( pMode=="REPEATED" ):
       qString = """
         WITH t1 AS ( SELECT u.{fName} AS f FROM `{projectName}.{datasetName}.{tableName}` AS t, t.{pName} AS u )
         SELECT f, COUNT(*) AS n FROM t1
@@ -76,18 +76,23 @@ def bbqBuildFieldContentsQuery ( projectName, datasetName, tableName, fNameList,
     pMode  = fModeList[1]
     fMode  = fModeList[2]
 
-    print ( ' testing ... G ' )
-    ## working on  ['variants', 'clinvar', 'orphanetIds'] ['REPEATED', 'REPEATED', 'REPEATED'] 3
-
-    if ( fMode == "REPEATED" and pMode == "REPEATED" and gpMode == "REPEATED" ):
+    if ( fMode=="REPEATED" and pMode=="REPEATED" and gpMode=="REPEATED" ):
       ## print ( gp, p, f, fMode )
       qString = """
         WITH t1 AS ( SELECT w AS f FROM `{projectName}.{datasetName}.{tableName}` AS t, t.{gpName} AS u, u.{pName} AS v, v.{fName} AS w )
         SELECT f, COUNT(*) AS n FROM t1
         GROUP BY 1 ORDER BY 2 DESC, 1
       """.format(gpName=gp, pName=p, fName=f, projectName=projectName, datasetName=datasetName, tableName=tableName)                 
+
+    elif ( fMode=="REPEATED" and pMode=="NULLABLE" and gpMode=="NULLABLE" ):
+      ## print ( gp, p, f, fMode )
+      qString = """
+        WITH t1 AS ( SELECT u.{pName}.{fName} AS f FROM `{projectName}.{datasetName}.{tableName}` AS t, t.{gpName} AS u )
+        SELECT f, COUNT(*) AS n FROM t1
+        GROUP BY 1 ORDER BY 2 DESC, 1
+      """.format(gpName=gp, pName=p, fName=f, projectName=projectName, datasetName=datasetName, tableName=tableName)                 
     
-    elif ( fMode == "REPEATED" and pMode == "NULLABLE" ):
+    elif ( fMode=="REPEATED" and pMode=="NULLABLE" ):
       ## print ( gp, p, f, fMode )
       qString = """
         WITH t1 AS ( SELECT v AS f FROM `{projectName}.{datasetName}.{tableName}` AS t, t.{gpName} AS u, u.{pName}.{fName} AS v )
@@ -95,7 +100,7 @@ def bbqBuildFieldContentsQuery ( projectName, datasetName, tableName, fNameList,
         GROUP BY 1 ORDER BY 2 DESC, 1
       """.format(gpName=gp, pName=p, fName=f, projectName=projectName, datasetName=datasetName, tableName=tableName)                 
 
-    elif ( pMode == "REPEATED" ):
+    elif ( pMode=="REPEATED" ):
       ## print ( gp, p, f, fMode )
       qString = """
         WITH t1 AS ( SELECT v.{fName} AS f FROM `{projectName}.{datasetName}.{tableName}` AS t, t.{gpName} AS u, u.{pName} AS v )
@@ -110,6 +115,45 @@ def bbqBuildFieldContentsQuery ( projectName, datasetName, tableName, fNameList,
         GROUP BY 1 ORDER BY 2 DESC, 1
       """.format(gpName=gp, pName=p, fName=f, projectName=projectName, datasetName=datasetName, tableName=tableName)                 
       
+  elif ( fdepth == 4 ):
+
+    ggp = fNameList[0]
+    gp = fNameList[1]
+    p = fNameList[2]
+    f = fNameList[3]
+
+    ggpMode = fModeList[0]
+    gpMode = fModeList[1]
+    pMode = fModeList[2]
+    fMode = fModeList[3]
+
+    ## ['variants', 'cosmic', 'studies', 'histology'] ['RECORD', 'RECORD', 'RECORD', 'STRING'] ['REPEATED', 'REPEATED', 'REPEATED', 'NULLABLE'] 4
+
+    if ( fMode=="NULLABLE" and pMode=="REPEATED" and gpMode=="NULLABLE" and ggpMode=="REPEATED" ):
+      qString = """
+        WITH t1 AS ( SELECT v.{fName} AS f 
+          FROM `{projectName}.{datasetName}.{tableName}` AS t, 
+            t.{ggpName} AS u, u.{gpName}.{pName} AS v )
+        SELECT f, COUNT(*) AS n FROM t1
+        GROUP BY 1 ORDER BY 2 DESC, 1
+      """.format(ggpName=ggp, gpName=gp, pName=p, fName=f, projectName=projectName, datasetName=datasetName, tableName=tableName)                 
+
+    elif ( fMode=="NULLABLE" and pMode=="REPEATED" and gpMode=="REPEATED" and ggpMode=="REPEATED" ):
+      qString = """
+        WITH t1 AS ( SELECT w.{fName} AS f 
+          FROM `{projectName}.{datasetName}.{tableName}` AS t, 
+            t.{ggpName} AS u, 
+            u.{gpName}  AS v,
+            v.{pName}   AS w )
+        SELECT f, COUNT(*) AS n FROM t1
+        GROUP BY 1 ORDER BY 2 DESC, 1
+      """.format(ggpName=ggp, gpName=gp, pName=p, fName=f, projectName=projectName, datasetName=datasetName, tableName=tableName)                 
+
+    else:
+      print ( ' I do not know how to handle this case yet... ' )
+      print ( ' in bbqBuildFieldContentsQuery ... ', fNameList, fTypeList, fModeList, fdepth)
+      qString = "TODO"
+
   else:
     print ( ' I do not know how to handle this case yet... ' )
     print ( ' in bbqBuildFieldContentsQuery ... ', fNameList, fTypeList, fModeList, fdepth)
@@ -129,13 +173,13 @@ def bbqBuildRepeatedFieldsQuery ( projectName, datasetName, tableName, fNameList
   
   fdepth = len(fNameList)
 
-  print ( ' in bbqBuildRepeatedFieldsQuery ... ', fNameList, fTypeList, fModeList, fdepth)
+  ## print ( ' in bbqBuildRepeatedFieldsQuery ... ', fNameList, fTypeList, fModeList, fdepth)
   
   if ( fdepth == 1 ):
     fName = fNameList[0]
     fMode = fModeList[0]
     
-    if ( fMode == "REPEATED" ):
+    if ( fMode=="REPEATED" ):
       ## construct a query for a REPEATED field
       qString = """
         WITH t1 AS ( SELECT ARRAY_LENGTH({fName}) AS f FROM `{projectName}.{datasetName}.{tableName}` AS t )
@@ -155,7 +199,7 @@ def bbqBuildRepeatedFieldsQuery ( projectName, datasetName, tableName, fNameList
     pMode = fModeList[0]
     fMode = fModeList[1]
 
-    if ( fMode == "REPEATED" ):
+    if ( fMode=="REPEATED" ):
       qString = """
         WITH t1 AS ( SELECT ARRAY_LENGTH(u.{fName}) AS f FROM `{projectName}.{datasetName}.{tableName}` AS t, t.{pName} AS u )
         SELECT f, COUNT(*) AS n FROM t1
