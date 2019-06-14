@@ -318,7 +318,7 @@ def bbqExploreFieldContents ( bqclient, projectName, datasetName, tableName, exc
             ## if this field is also a RECORD, dig further ...
             if ( h.field_type=="RECORD" ):
 
-              print ( f'    >    > {h.name:14}  {h.field_type:10}  {h.mode:10} [{len(h.fields)}] ' )    
+              print ( f'        > {h.name:18}  {h.field_type:10}  {h.mode:10} [{len(h.fields)}] ' )    
 
               ## loop over all fields within 'h'
               for j in h.fields:
