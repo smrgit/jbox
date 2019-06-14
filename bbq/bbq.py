@@ -190,9 +190,34 @@ def bbqBuildRepeatedFieldsQuery ( projectName, datasetName, tableName, fNameList
         GROUP BY 1 ORDER BY 2 DESC, 1
       """.format(gpName=gpName, pName=pName, fName=fName, projectName=projectName, datasetName=datasetName, tableName=tableName) 
 
+  elif ( fdepth == 4 ):
+    ## ['variants', 'transcripts', 'ensembl', 'consequence'] ['RECORD', 'RECORD', 'RECORD', 'STRING'] ['REPEATED', 'NULLABLE', 'REPEATED', 'REPEATED']
+
+    ggpName = fNameList[0]
+    gpName = fNameList[1]
+    pName = fNameList[2]
+    fName = fNameList[3]
+
+    ggpMode = fModeList[0]
+    gpMode = fModeList[1]
+    pMode = fModeList[2]
+    fMode = fModeList[3]
+
+    if ( fMode=="REPEATED" AND pMode=="REPEATED" AND gpMode=="NULLABLE" AND ggpMode=="REPEATED" ):
+      qString == """
+        WITH t1 AS ( SELECT ARRAY_LENGTH(v.{fName}) AS f 
+        FROM 
+          `{projectName}.{datasetName}.{tableName}` AS t, 
+          t.{ggpName} AS u, u.{gpName}.{pName} as v )
+        SELECT f, COUNT(*) AS n FROM t1
+        GROUP BY 1 ORDER BY 2 DESC, 1
+      """.format(ggpName=ggpName, gpName=gpName, pName=pName, fName=fName, projectName=projectName, datasetName=datasetName, tableName=tableName) 
+
+    else:
+      print " do not know how to handle this one yet ... "
+
   else:
-    print ( '     should I even be getting here ??? (c) ' )
-    print ( ' >>> I do not know how to handle this yet <<< ' )
+    print ( ' getting in too DEEP !!! ' )
     print ( ' in bbqBuildRepeatedFieldsQuery ... ', fNameList, fTypeList, fModeList, fdepth)
     qString = "TODO"
   
