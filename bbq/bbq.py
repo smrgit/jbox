@@ -190,13 +190,6 @@ def bbqBuildRepeatedFieldsQuery ( projectName, datasetName, tableName, fNameList
         GROUP BY 1 ORDER BY 2 DESC, 1
       """.format(gpName=gpName, pName=pName, fName=fName, projectName=projectName, datasetName=datasetName, tableName=tableName)      
 
-    else:
-      qString = """
-        WITH t1 AS ( SELECT ARRAY_LENGTH(u.{fName}) AS f FROM `{projectName}.{datasetName}.{tableName}` AS t, t.{pName} AS u )
-        SELECT f, COUNT(*) AS n FROM t1
-        GROUP BY 1 ORDER BY 2 DESC, 1
-      """.format(gpName=gpName, pName=pName, fName=fName, projectName=projectName, datasetName=datasetName, tableName=tableName)      
-      
   else:
     print ( '     should I even be getting here ??? (c) ' )
     print ( ' >>> I do not know how to handle this yet <<< ' )
