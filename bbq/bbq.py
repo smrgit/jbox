@@ -203,7 +203,7 @@ def bbqBuildRepeatedFieldsQuery ( projectName, datasetName, tableName, fNameList
     pMode = fModeList[2]
     fMode = fModeList[3]
 
-    if ( fMode=="REPEATED" AND pMode=="REPEATED" AND gpMode=="NULLABLE" AND ggpMode=="REPEATED" ):
+    if ( fMode=="REPEATED" and pMode=="REPEATED" and gpMode=="NULLABLE" and ggpMode=="REPEATED" ):
       qString == """
         WITH t1 AS ( SELECT ARRAY_LENGTH(v.{fName}) AS f 
         FROM 
