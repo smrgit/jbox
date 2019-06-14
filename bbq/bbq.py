@@ -76,7 +76,7 @@ def bbqBuildFieldContentsQuery ( projectName, datasetName, tableName, fNameList,
     pMode  = fModeList[1]
     fMode  = fModeList[2]
 
-    print ( ' testing ... F ' )
+    print ( ' testing ... G ' )
     ## working on  ['variants', 'clinvar', 'orphanetIds'] ['REPEATED', 'REPEATED', 'REPEATED'] 3
 
     if ( fMode == "REPEATED" and pMode == "REPEATED" and gpMode == "REPEATED" ):
@@ -166,7 +166,6 @@ def bbqBuildRepeatedFieldsQuery ( projectName, datasetName, tableName, fNameList
       qString = "TODO ???"
 
   elif ( fdepth == 3 ):
-    ## ['variants', 'dbsnp', 'ids'] ['RECORD', 'RECORD', 'STRING'] ['REPEATED', 'NULLABLE', 'REPEATED'] 3
 
     gpName = fNameList[0]
     pName = fNameList[1]
@@ -188,7 +187,7 @@ def bbqBuildRepeatedFieldsQuery ( projectName, datasetName, tableName, fNameList
         WITH t1 AS ( SELECT ARRAY_LENGTH(v.{fName}) AS f FROM `{projectName}.{datasetName}.{tableName}` AS t, t.{gpName} AS u, u.{pName} as v )
         SELECT f, COUNT(*) AS n FROM t1
         GROUP BY 1 ORDER BY 2 DESC, 1
-      """.format(gpName=gpName, pName=pName, fName=fName, projectName=projectName, datasetName=datasetName, tableName=tableName)      
+      """.format(gpName=gpName, pName=pName, fName=fName, projectName=projectName, datasetName=datasetName, tableName=tableName) 
 
   else:
     print ( '     should I even be getting here ??? (c) ' )
