@@ -127,13 +127,23 @@ def bbqBuildFieldContentsQuery ( projectName, datasetName, tableName, fNameList,
     pMode = fModeList[2]
     fMode = fModeList[3]
 
-    ## ['variants', 'cosmic', 'studies', 'histology'] ['RECORD', 'RECORD', 'RECORD', 'STRING'] ['REPEATED', 'REPEATED', 'REPEATED', 'NULLABLE'] 4
-
     if ( fMode=="NULLABLE" and pMode=="REPEATED" and gpMode=="NULLABLE" and ggpMode=="REPEATED" ):
       qString = """
         WITH t1 AS ( SELECT v.{fName} AS f 
           FROM `{projectName}.{datasetName}.{tableName}` AS t, 
             t.{ggpName} AS u, u.{gpName}.{pName} AS v )
+        SELECT f, COUNT(*) AS n FROM t1
+        GROUP BY 1 ORDER BY 2 DESC, 1
+      """.format(ggpName=ggp, gpName=gp, pName=p, fName=f, projectName=projectName, datasetName=datasetName, tableName=tableName)                 
+
+    ## ['variants', 'transcripts', 'ensembl', 'consequence'] ['RECORD', 'RECORD', 'RECORD', 'STRING'] ['REPEATED', 'NULLABLE', 'REPEATED', 'REPEATED'] 4
+    elif ( fMode=="REPEATED" and pMode=="REPEATED" and gpMode=="NULLABLE" and ggpMode=="REPEATED" ):
+      qString = """
+        WITH t1 AS ( SELECT w AS f 
+          FROM `{projectName}.{datasetName}.{tableName}` AS t, 
+            t.{ggpName} AS u, 
+            u.{gpName}.{pName} AS v,
+            v.{fName} AS w )
         SELECT f, COUNT(*) AS n FROM t1
         GROUP BY 1 ORDER BY 2 DESC, 1
       """.format(ggpName=ggp, gpName=gp, pName=p, fName=f, projectName=projectName, datasetName=datasetName, tableName=tableName)                 
@@ -367,7 +377,6 @@ def bbqExploreFieldContents ( bqclient, projectName, datasetName, tableName, exc
               else:
                 print ( f'        > {h.name:18}  {h.field_type:10}  {h.mode:10} (this field was excluded)' )
                 
-
         ## if g is NOT a RECORD:
         else:
           
@@ -508,22 +517,6 @@ def bbqExploreRepeatedFields ( bqclient, projectName, datasetName, tableName ):
                 if ( j.field_type=="RECORD" ):
                   logging.error ( " RECORD found at {}>{}>{}>{} ??? ".format(f.name, g.name, h.name, j.name) )
               
-            else:
-              
-              if ( h.mode=="REPEATED" ):
-                numRF += 1
-                qs = bbqBuildRepeatedFieldsQuery ( projectName, datasetName, tableName, 
-                                                  [f.name, g.name, h.name], 
-                                                  [f.field_type, g.field_type, h.field_type],
-                                                  [f.mode, g.mode, h.mode] )
-                qr = bbqRunQuery ( bqclient, qs )
-                sqr = bbqSummarizeQueryResults ( qr )
-                if ( sqr[0] == 1 ):
-                  print ( f'        > {h.name:18}  {h.field_type:10}  {h.mode:10} always repeated {sqr[3]} time(s)' )
-                else:
-                  print ( f'        > {h.name:18}  {h.field_type:10}  {h.mode:10}', sqr )                      
-               
-
   if ( numRF < 1 ):
     print ( f' no REPEATED fields found in this table' )
              
