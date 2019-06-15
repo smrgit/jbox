@@ -486,15 +486,15 @@ def bbqExploreRepeatedFields ( bqclient, projectName, datasetName, tableName ):
               qr = bbqRunQuery ( bqclient, qs )
               sqr = bbqSummarizeQueryResults ( qr )
               if ( sqr[0] == 1 ):
-                print ( f'    > {h.name:22}  {h.field_type:10}  {h.mode:10} always repeated {sqr[3]} time(s)' )
+                print ( f'        > {h.name:18}  {h.field_type:10}  {h.mode:10} always repeated {sqr[3]} time(s)' )
               else:
-                print ( f'    > {h.name:22}  {h.field_type:10}  {h.mode:10}', sqr )        
+                print ( f'        > {h.name:18}  {h.field_type:10}  {h.mode:10}', sqr )        
 
             ## if H is a RECORD ... dig further ...
             if ( h.field_type=="RECORD" ):
 
               if ( h.mode != "REPEATED" ):
-                print ( f'    > {h.name:22}  {h.field_type:10}  {h.mode:10}' )          
+                print ( f'        > {h.name:18}  {h.field_type:10}  {h.mode:10}' )          
 
               ## next loop over all fields J in record H:
               for j in h.fields:
@@ -509,9 +509,9 @@ def bbqExploreRepeatedFields ( bqclient, projectName, datasetName, tableName ):
                   qr = bbqRunQuery ( bqclient, qs )
                   sqr = bbqSummarizeQueryResults ( qr )
                   if ( sqr[0] == 1 ):
-                    print ( f'    > {j.name:22}  {j.field_type:10}  {j.mode:10} always repeated {sqr[3]} time(s)' )
+                    print ( f'            > {j.name:14}  {j.field_type:10}  {j.mode:10} always repeated {sqr[3]} time(s)' )
                   else:
-                    print ( f'    > {j.name:22}  {j.field_type:10}  {j.mode:10}', sqr )        
+                    print ( f'            > {j.name:14}  {j.field_type:10}  {j.mode:10}', sqr )        
 
                 ## hope and pray that J is not a RECORD ...
                 if ( j.field_type=="RECORD" ):
@@ -522,8 +522,6 @@ def bbqExploreRepeatedFields ( bqclient, projectName, datasetName, tableName ):
              
   return ()
 
-
-          ## (we are assuming no more RECORDs at this depth)
 ##--------------------------------------------------------------------------------------------------
 ##
 
