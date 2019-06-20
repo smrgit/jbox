@@ -313,7 +313,7 @@ def bbqExploreFieldContents ( bqclient, projectName, datasetName, tableName, exc
     if ( f.field_type=="RECORD" ):
 
       ## print ( f'{f.name:28}  {f.field_type:10}  {f.mode:10} [{len(f.fields)}] ' )
-      print ( '{f.name:28s}  {f.field_type:10s}  {f.mode:10s} [{n:%d}]'.format(name=f.name, field_type=f.field_type, mode=f.mode, n=len(f.fields) )
+      print ( '{name:28s}  {field_type:10s}  {mode:10s} [{n:%d}]'.format(name=f.name, field_type=f.field_type, mode=f.mode, n=len(f.fields)) )
 
       ## loop over all fields within 'f'
       for g in f.fields:     
@@ -321,7 +321,8 @@ def bbqExploreFieldContents ( bqclient, projectName, datasetName, tableName, exc
         ## if this field is also a RECORD, dig further ...
         if ( g.field_type=="RECORD" ):
 
-          print ( f'    > {g.name:22}  {g.field_type:10}  {g.mode:10} [{len(g.fields)}] ' )    
+          ## print ( f'    > {g.name:22}  {g.field_type:10}  {g.mode:10} [{len(g.fields)}] ' )    
+          print ( '    > {name:22}  {field_type:10}  {mode:10} [{n}]'.format(name=g.name, field_type=g.field_type, mode=g.mode, n=len(g.fields)) )    
 
           ## loop over all fields within 'g'
           for h in g.fields:
@@ -329,7 +330,8 @@ def bbqExploreFieldContents ( bqclient, projectName, datasetName, tableName, exc
             ## if this field is also a RECORD, dig further ...
             if ( h.field_type=="RECORD" ):
 
-              print ( f'        > {h.name:18}  {h.field_type:10}  {h.mode:10} [{len(h.fields)}] ' )    
+              ## print ( f'        > {h.name:18}  {h.field_type:10}  {h.mode:10} [{len(h.fields)}] ' )    
+              print ( '        > {name:18}  {field_type:10}  {mode:10} [{n}]'.format(name=h.name, field_type=h.field_type, mode=h.mode, n=len(h.fields)) )    
 
               ## loop over all fields within 'h'
               for j in h.fields:
@@ -353,9 +355,12 @@ def bbqExploreFieldContents ( bqclient, projectName, datasetName, tableName, exc
                       print ( qs )
                     else:
                       sqr = bbqSummarizeQueryResults ( qr )
-                      if ( len(sqr) > 2 ): print ( f'            > {j.name:14}  {j.field_type:10}  {j.mode:10}', sqr )   
+                      if ( len(sqr) > 2 ): 
+                          ## print ( f'            > {j.name:14}  {j.field_type:10}  {j.mode:10}', sqr )   
+                          print ( '            > {name:14}  {field_type:10}  {mode:10} {sqr}'.format(name=j.name, field_type=j.field_type, mode=j.mode, sqr=sqr) )   
                   else:
-                    print ( f'        > {j.name:18}  {j.field_type:10}  {j.mode:10} (this field was excluded)' )
+                    ## print ( f'        > {j.name:18}  {j.field_type:10}  {j.mode:10} (this field was excluded)' )
+                    print ( '        > {name:14}  {field_type:10}  {mode:10} (this field was excluded)'.format(name=j.name, field_type=j.field_type, mode=j.mode) )   
                 
                     
             ## if h is NOT a RECORD:  
@@ -374,9 +379,12 @@ def bbqExploreFieldContents ( bqclient, projectName, datasetName, tableName, exc
                   print ( qs )
                 else:
                   sqr = bbqSummarizeQueryResults ( qr )
-                  if ( len(sqr) > 2 ): print ( f'        > {h.name:18}  {h.field_type:10}  {h.mode:10}', sqr )   
+                  if ( len(sqr) > 2 ): 
+                      ## print ( f'        > {h.name:18}  {h.field_type:10}  {h.mode:10}', sqr )   
+                      print ( '        > {name:18}  {field_type:10}  {mode:10} {sqr}'.format(name=h.name, field_type=h.field_type, mode=h.mode, sqr=sqr) )   
               else:
-                print ( f'        > {h.name:18}  {h.field_type:10}  {h.mode:10} (this field was excluded)' )
+                ## print ( f'        > {h.name:18}  {h.field_type:10}  {h.mode:10} (this field was excluded)' )
+                print ( '        > {name:18}  {field_type:10}  {mode:10} (this field was excluded)'.format(name=h.name, field_type=h.field_type, mode=h.mode) )
                 
         ## if g is NOT a RECORD:
         else:
@@ -394,9 +402,12 @@ def bbqExploreFieldContents ( bqclient, projectName, datasetName, tableName, exc
               print ( qs )
             else:
               sqr = bbqSummarizeQueryResults ( qr )
-              if ( len(sqr) > 2 ): print ( f'    > {g.name:22}  {g.field_type:10}  {g.mode:10}', sqr )
+              if ( len(sqr) > 2 ): 
+                  ## print ( f'    > {g.name:22}  {g.field_type:10}  {g.mode:10}', sqr )
+                  print ( '    > {name:22}  {field_type:10}  {mode:10} {sqr}'.format(name=g.name, field_type=g.field_type, mode=g.mode, sqr=sqr) )
           else:
-            print ( f'    > {g.name:22}  {g.field_type:10}  {g.mode:10} (this field was excluded)' )
+            ## print ( f'    > {g.name:22}  {g.field_type:10}  {g.mode:10} (this field was excluded)' )
+            print ( '    > {name:22}  {field_type:10}  {mode:10} (this field was excluded)'.format(name=g.name, field_type=g.field_type, mode=g.mode) )
 
     ## if f is NOT a RECORD
     else:
@@ -412,9 +423,12 @@ def bbqExploreFieldContents ( bqclient, projectName, datasetName, tableName, exc
           print ( qs )
         else:
           sqr = bbqSummarizeQueryResults ( qr )
-          if ( len(sqr) > 2 ): print ( f'{f.name:28}  {f.field_type:10}  {f.mode:10}', sqr )
+          if ( len(sqr) > 2 ): 
+              ## print ( f'{f.name:28}  {f.field_type:10}  {f.mode:10}', sqr )
+              print ( '{name:28}  {field_type:10}  {mode:10} {sqr}'.format(name=f.name, field_type=f.field_type, mode=f.mode, sqr=sqr) )
       else:
-        print ( f'{f.name:28}  {f.field_type:10}  {f.mode:10} (this field was excluded)' )
+        ## print ( f'{f.name:28}  {f.field_type:10}  {f.mode:10} (this field was excluded)' )
+        print ( '{name:28}  {field_type:10}  {mode:10} (this field was excluded)'.format(name=f.name, field_type=f.field_type, mode=f.mode) )
           
   return ()
 
@@ -441,15 +455,18 @@ def bbqExploreRepeatedFields ( bqclient, projectName, datasetName, tableName ):
       qr = bbqRunQuery ( bqclient, qs )
       sqr = bbqSummarizeQueryResults ( qr )
       if ( sqr[0]==1 ):
-        print ( f'{f.name:28}  {f.field_type:10}  {f.mode:10} always repeated {sqr[3]} time(s)' )
+        ## print ( f'{f.name:28}  {f.field_type:10}  {f.mode:10} always repeated {sqr[3]} time(s)' )
+        print ( '{name:28}  {field_type:10}  {mode:10} always repeated {n} time(s)'.format(name=f.name, field_type=f.field_type, mode=f.mode, n=sqr[3]) )
       else:  
-        print ( f'{f.name:28}  {f.field_type:10}  {f.mode:10}', sqr )
+        ## print ( f'{f.name:28}  {f.field_type:10}  {f.mode:10}', sqr )
+        print ( '{name:28}  {field_type:10}  {mode:10} {sqr}'.format(name=f.name, field_type=f.field_type, mode=f.mode, sqr=sqr) )
     
     ## if F is a RECORD ... dig further ...
     if ( f.field_type=="RECORD" ):
       
       if ( f.mode != "REPEATED" ):
-        print ( f'{f.name:28}  {f.field_type:10}  {f.mode:10}' )
+        ## print ( f'{f.name:28}  {f.field_type:10}  {f.mode:10}' )
+        print ( '{name:28}  {field_type:10}  {mode:10}'.format(name=f.name, field_type=f.field_type, mode=f.mode) )
 
       ## next loop over all fields G in record F:
       for g in f.fields:     
@@ -464,15 +481,18 @@ def bbqExploreRepeatedFields ( bqclient, projectName, datasetName, tableName ):
           qr = bbqRunQuery ( bqclient, qs )
           sqr = bbqSummarizeQueryResults ( qr )
           if ( sqr[0] == 1 ):
-            print ( f'    > {g.name:22}  {g.field_type:10}  {g.mode:10} always repeated {sqr[3]} time(s)' )
+            ## print ( f'    > {g.name:22}  {g.field_type:10}  {g.mode:10} always repeated {sqr[3]} time(s)' )
+            print ( '    > {name:22}  {field_type:10}  {mode:10} always repeated {n} time(s)'.format(name=g.name, field_type=g.field_type, mode=g.mode, n=sqr[3]) )
           else:
-            print ( f'    > {g.name:22}  {g.field_type:10}  {g.mode:10}', sqr )        
+            ## print ( f'    > {g.name:22}  {g.field_type:10}  {g.mode:10}', sqr )        
+            print ( '    > {name:22}  {field_type:10}  {mode:10} {sqr}'.format(name=g.name, field_type=g.field_type, mode=g.mode, sqr=sqr) )        
         
         ## if G is a RECORD ... dig further ...
         if ( g.field_type=="RECORD" ):
 
           if ( g.mode != "REPEATED" ):
-            print ( f'    > {g.name:22}  {g.field_type:10}  {g.mode:10}' )          
+            ## print ( f'    > {g.name:22}  {g.field_type:10}  {g.mode:10}' )          
+            print ( '    > {name:22}  {field_type:10}  {mode:10}'.format(name=g.name, field_type=g.field_type, mode=g.mode) )          
           
           ## next loop over all fields H in record G:
           for h in g.fields:
@@ -487,15 +507,18 @@ def bbqExploreRepeatedFields ( bqclient, projectName, datasetName, tableName ):
               qr = bbqRunQuery ( bqclient, qs )
               sqr = bbqSummarizeQueryResults ( qr )
               if ( sqr[0] == 1 ):
-                print ( f'        > {h.name:18}  {h.field_type:10}  {h.mode:10} always repeated {sqr[3]} time(s)' )
+                ## print ( f'        > {h.name:18}  {h.field_type:10}  {h.mode:10} always repeated {sqr[3]} time(s)' )
+                print ( '        > {name:18}  {field_type:10}  {mode:10} always repeated {n} time(s)'.format(name=h.name, field_type=h.field_type, mode=h.mode, n=sqr[3]) )
               else:
-                print ( f'        > {h.name:18}  {h.field_type:10}  {h.mode:10}', sqr )        
+                ## print ( f'        > {h.name:18}  {h.field_type:10}  {h.mode:10}', sqr )        
+                print ( '        > {name:18}  {field_type:10}  {mode:10} {sqr}'.format(name=h.name, field_type=h.field_type, mode=h.mode, sqr=sqr) )        
 
             ## if H is a RECORD ... dig further ...
             if ( h.field_type=="RECORD" ):
 
               if ( h.mode != "REPEATED" ):
-                print ( f'        > {h.name:18}  {h.field_type:10}  {h.mode:10}' )          
+                ## print ( f'        > {h.name:18}  {h.field_type:10}  {h.mode:10}' )          
+                print ( '        > {name:18}  {field_type:10}  {mode:10}'.format(name=h.name, field_type=h.field_type, mode=h.mode) )          
 
               ## next loop over all fields J in record H:
               for j in h.fields:
@@ -510,16 +533,19 @@ def bbqExploreRepeatedFields ( bqclient, projectName, datasetName, tableName ):
                   qr = bbqRunQuery ( bqclient, qs )
                   sqr = bbqSummarizeQueryResults ( qr )
                   if ( sqr[0] == 1 ):
-                    print ( f'            > {j.name:14}  {j.field_type:10}  {j.mode:10} always repeated {sqr[3]} time(s)' )
+                    ## print ( f'            > {j.name:14}  {j.field_type:10}  {j.mode:10} always repeated {sqr[3]} time(s)' )
+                    print ( '            > {name:14}  {field_type:10}  {mode:10} always repeated {n} time(s)'.format(name=j.name, field_type=j.field_type, mode=j.mode, n=sqr[3]) )
                   else:
-                    print ( f'            > {j.name:14}  {j.field_type:10}  {j.mode:10}', sqr )        
+                    ## print ( f'            > {j.name:14}  {j.field_type:10}  {j.mode:10}', sqr )        
+                    print ( '            > {name:14}  {field_type:10}  {mode:10} {sqr}'.format(name=j.name, field_type=j.field_type, mode=j.mode, sqr=sqr) )        
 
                 ## hope and pray that J is not a RECORD ...
                 if ( j.field_type=="RECORD" ):
                   logging.error ( " RECORD found at {}>{}>{}>{} ??? ".format(f.name, g.name, h.name, j.name) )
               
   if ( numRF < 1 ):
-    print ( f' no REPEATED fields found in this table' )
+    ## print ( f' no REPEATED fields found in this table' )
+    print ( ' no REPEATED fields found in this table' )
              
   return ()
 
