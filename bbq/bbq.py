@@ -312,7 +312,8 @@ def bbqExploreFieldContents ( bqclient, projectName, datasetName, tableName, exc
     ## if this field is a RECORD, then dig down ...
     if ( f.field_type=="RECORD" ):
 
-      print ( f'{f.name:28}  {f.field_type:10}  {f.mode:10} [{len(f.fields)}] ' )
+      ## print ( f'{f.name:28}  {f.field_type:10}  {f.mode:10} [{len(f.fields)}] ' )
+      print ( '{f.name:28s}  {f.field_type:10s}  {f.mode:10s} [{n:%d}]'.format(name=f.name, field_type=f.field_type, mode=f.mode, n=len(f.fields) )
 
       ## loop over all fields within 'f'
       for g in f.fields:     
