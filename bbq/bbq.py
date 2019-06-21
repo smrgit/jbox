@@ -302,6 +302,13 @@ def bbqCheckQueryResults ( qr ):
 
 def bbqExploreFieldContents ( bqclient, projectName, datasetName, tableName, excludedNames, excludedTypes ):
 
+  ## initialize a dataframe for the results
+  resultsColumns = [ 'field_name', 'field_type', 'field_mode', 'n_fields', 'comment',
+                     'n_vals', 'n_null', 'n_total', 'common_val', 'common_n', 'common_f',
+                     'min_val', 'max_val', 'minR50', 'minR90' ]
+  rdf = pd.DataFrame(columns=resultsColumns)
+
+  ## get a pointer to the BQ table ...
   dataset_ref = bqclient.dataset ( datasetName, project=projectName)
   table_ref = dataset_ref.table ( tableName )
   table = bqclient.get_table ( table_ref )
@@ -313,7 +320,8 @@ def bbqExploreFieldContents ( bqclient, projectName, datasetName, tableName, exc
     if ( f.field_type=="RECORD" ):
 
       ## print ( f'{f.name:28}  {f.field_type:10}  {f.mode:10} [{len(f.fields)}] ' )
-      print ( '{name:28s}  {field_type:10s}  {mode:10s} [{n:%d}]'.format(name=f.name, field_type=f.field_type, mode=f.mode, n=len(f.fields)) )
+      print ( '{name:28}  {field_type:10}  {mode:10} [{n}]'.format(name=f.name, field_type=f.field_type, mode=f.mode, n=len(f.fields)) )
+      rdf = rdf.append ( {'field_name': f.name, 'field_type': f.field_type, 'field_mode':f.mode, 'n_fields':len(f.fields)}, ignore_index=True )
 
       ## loop over all fields within 'f'
       for g in f.fields:     
@@ -323,6 +331,7 @@ def bbqExploreFieldContents ( bqclient, projectName, datasetName, tableName, exc
 
           ## print ( f'    > {g.name:22}  {g.field_type:10}  {g.mode:10} [{len(g.fields)}] ' )    
           print ( '    > {name:22}  {field_type:10}  {mode:10} [{n}]'.format(name=g.name, field_type=g.field_type, mode=g.mode, n=len(g.fields)) )    
+          rdf = rdf.append ( {'field_name': f.name+'.'+g.name, 'field_type': g.field_type, 'field_mode':g.mode, 'n_fields':len(g.fields)}, ignore_index=True )
 
           ## loop over all fields within 'g'
           for h in g.fields:
@@ -332,6 +341,7 @@ def bbqExploreFieldContents ( bqclient, projectName, datasetName, tableName, exc
 
               ## print ( f'        > {h.name:18}  {h.field_type:10}  {h.mode:10} [{len(h.fields)}] ' )    
               print ( '        > {name:18}  {field_type:10}  {mode:10} [{n}]'.format(name=h.name, field_type=h.field_type, mode=h.mode, n=len(h.fields)) )    
+              rdf = rdf.append ( {'field_name': f.name+'.'+g.name+'.'+h.name, 'field_type': h.field_type, 'field_mode':h.mode, 'n_fields':len(h.fields)}, ignore_index=True )
 
               ## loop over all fields within 'h'
               for j in h.fields:
@@ -358,9 +368,18 @@ def bbqExploreFieldContents ( bqclient, projectName, datasetName, tableName, exc
                       if ( len(sqr) > 2 ): 
                           ## print ( f'            > {j.name:14}  {j.field_type:10}  {j.mode:10}', sqr )   
                           print ( '            > {name:14}  {field_type:10}  {mode:10} {sqr}'.format(name=j.name, field_type=j.field_type, mode=j.mode, sqr=sqr) )   
+                          rdf = rdf.append ( {'field_name': f.name+'.'+g.name+'.'+h.name+'.'+j.name, 
+                                        'field_type': j.field_type, 'field_mode':j.mode, 'n_fields':len(j.fields),
+                                        'comment':'',
+                                        'n_vals':sqr[0], 'n_null':sqr[1], 'n_total':sqr[2], 
+                                        'common_val':sqr[3], 'common_n':sqr[4], 'common_f':sqr[5],
+                                        'min_val':sqr[6], 'max_val':sqr[7], 'minR50':sqr[8], 'minR90':sqr[9]}, ignore_index=True )
                   else:
                     ## print ( f'        > {j.name:18}  {j.field_type:10}  {j.mode:10} (this field was excluded)' )
                     print ( '        > {name:14}  {field_type:10}  {mode:10} (this field was excluded)'.format(name=j.name, field_type=j.field_type, mode=j.mode) )   
+                    rdf = rdf.append ( {'field_name': f.name+'.'+g.name+'.'+h.name+'.'+j.name, 
+                                  'field_type': j.field_type, 'field_mode':j.mode, 'n_fields':len(j.fields),
+                                  'comment':'this field was excluded'}, ignore_index=True )
                 
                     
             ## if h is NOT a RECORD:  
@@ -382,9 +401,18 @@ def bbqExploreFieldContents ( bqclient, projectName, datasetName, tableName, exc
                   if ( len(sqr) > 2 ): 
                       ## print ( f'        > {h.name:18}  {h.field_type:10}  {h.mode:10}', sqr )   
                       print ( '        > {name:18}  {field_type:10}  {mode:10} {sqr}'.format(name=h.name, field_type=h.field_type, mode=h.mode, sqr=sqr) )   
+                      rdf = rdf.append ( {'field_name': f.name+'.'+g.name+'.'+h.name, 
+                                    'field_type': h.field_type, 'field_mode':h.mode, 'n_fields':len(h.fields),
+                                    'comment':'',
+                                    'n_vals':sqr[0], 'n_null':sqr[1], 'n_total':sqr[2], 
+                                    'common_val':sqr[3], 'common_n':sqr[4], 'common_f':sqr[5],
+                                    'min_val':sqr[6], 'max_val':sqr[7], 'minR50':sqr[8], 'minR90':sqr[9]}, ignore_index=True )
               else:
                 ## print ( f'        > {h.name:18}  {h.field_type:10}  {h.mode:10} (this field was excluded)' )
                 print ( '        > {name:18}  {field_type:10}  {mode:10} (this field was excluded)'.format(name=h.name, field_type=h.field_type, mode=h.mode) )
+                rdf = rdf.append ( {'field_name': f.name+'.'+g.name+'.'+h.name, 
+                              'field_type': h.field_type, 'field_mode':h.mode, 'n_fields':len(h.fields),
+                              'comment':'this field was excluded'}, ignore_index=True )
                 
         ## if g is NOT a RECORD:
         else:
@@ -405,9 +433,18 @@ def bbqExploreFieldContents ( bqclient, projectName, datasetName, tableName, exc
               if ( len(sqr) > 2 ): 
                   ## print ( f'    > {g.name:22}  {g.field_type:10}  {g.mode:10}', sqr )
                   print ( '    > {name:22}  {field_type:10}  {mode:10} {sqr}'.format(name=g.name, field_type=g.field_type, mode=g.mode, sqr=sqr) )
+                  rdf = rdf.append ( {'field_name': f.name+'.'+g.name, 
+                                'field_type': g.field_type, 'field_mode':g.mode, 'n_fields':len(g.fields),
+                                'comment':'',
+                                'n_vals':sqr[0], 'n_null':sqr[1], 'n_total':sqr[2], 
+                                'common_val':sqr[3], 'common_n':sqr[4], 'common_f':sqr[5],
+                                'min_val':sqr[6], 'max_val':sqr[7], 'minR50':sqr[8], 'minR90':sqr[9]}, ignore_index=True )
           else:
             ## print ( f'    > {g.name:22}  {g.field_type:10}  {g.mode:10} (this field was excluded)' )
             print ( '    > {name:22}  {field_type:10}  {mode:10} (this field was excluded)'.format(name=g.name, field_type=g.field_type, mode=g.mode) )
+            rdf = rdf.append ( {'field_name': f.name+'.'+g.name, 
+                          'field_type': g.field_type, 'field_mode':g.mode, 'n_fields':len(g.fields),
+                          'comment':'this field was excluded'}, ignore_index=True )
 
     ## if f is NOT a RECORD
     else:
@@ -426,11 +463,20 @@ def bbqExploreFieldContents ( bqclient, projectName, datasetName, tableName, exc
           if ( len(sqr) > 2 ): 
               ## print ( f'{f.name:28}  {f.field_type:10}  {f.mode:10}', sqr )
               print ( '{name:28}  {field_type:10}  {mode:10} {sqr}'.format(name=f.name, field_type=f.field_type, mode=f.mode, sqr=sqr) )
+              rdf = rdf.append ( {'field_name': f.name, 
+                            'field_type': f.field_type, 'field_mode':f.mode, 'n_fields':len(f.fields),
+                            'comment':'',
+                            'n_vals':sqr[0], 'n_null':sqr[1], 'n_total':sqr[2], 
+                            'common_val':sqr[3], 'common_n':sqr[4], 'common_f':sqr[5],
+                            'min_val':sqr[6], 'max_val':sqr[7], 'minR50':sqr[8], 'minR90':sqr[9]}, ignore_index=True )
       else:
         ## print ( f'{f.name:28}  {f.field_type:10}  {f.mode:10} (this field was excluded)' )
         print ( '{name:28}  {field_type:10}  {mode:10} (this field was excluded)'.format(name=f.name, field_type=f.field_type, mode=f.mode) )
+        rdf = rdf.append ( {'field_name': f.name, 
+                      'field_type': f.field_type, 'field_mode':f.mode, 'n_fields':len(f.fields),
+                      'comment':'this field was excluded'}, ignore_index=True )
           
-  return ()
+  return ( rdf )
 
 
 ##--------------------------------------------------------------------------------------------------
@@ -438,6 +484,13 @@ def bbqExploreFieldContents ( bqclient, projectName, datasetName, tableName, exc
 
 def bbqExploreRepeatedFields ( bqclient, projectName, datasetName, tableName ):
 
+  ## initialize a dataframe for the results
+  resultsColumns = [ 'field_name', 'field_type', 'field_mode', 'n_repeats', 'comment',
+                     'n_vals', 'n_null', 'n_total', 'common_val', 'common_n', 'common_f',
+                     'min_val', 'max_val', 'minR50', 'minR90' ]
+  rdf = pd.DataFrame(columns=resultsColumns)
+
+  ## get a pointer to the BQ table ...
   dataset_ref = bqclient.dataset ( datasetName, project=projectName)
   table_ref = dataset_ref.table ( tableName )
   table = bqclient.get_table ( table_ref )
@@ -457,9 +510,16 @@ def bbqExploreRepeatedFields ( bqclient, projectName, datasetName, tableName ):
       if ( sqr[0]==1 ):
         ## print ( f'{f.name:28}  {f.field_type:10}  {f.mode:10} always repeated {sqr[3]} time(s)' )
         print ( '{name:28}  {field_type:10}  {mode:10} always repeated {n} time(s)'.format(name=f.name, field_type=f.field_type, mode=f.mode, n=sqr[3]) )
+        rdf = rdf.append ( {'field_name': f.name, 'field_type': f.field_type, 'field_mode':f.mode, 'n_repeats':sqr[3]}, ignore_index=True )
       else:  
         ## print ( f'{f.name:28}  {f.field_type:10}  {f.mode:10}', sqr )
         print ( '{name:28}  {field_type:10}  {mode:10} {sqr}'.format(name=f.name, field_type=f.field_type, mode=f.mode, sqr=sqr) )
+        rdf = rdf.append ( {'field_name': f.name, 
+                            'field_type': f.field_type, 'field_mode':f.mode, 'n_repeats':'variable',
+                            'comment':'',
+                            'n_vals':sqr[0], 'n_null':sqr[1], 'n_total':sqr[2], 
+                            'common_val':sqr[3], 'common_n':sqr[4], 'common_f':sqr[5],
+                            'min_val':sqr[6], 'max_val':sqr[7], 'minR50':sqr[8], 'minR90':sqr[9]}, ignore_index=True )
     
     ## if F is a RECORD ... dig further ...
     if ( f.field_type=="RECORD" ):
@@ -483,9 +543,16 @@ def bbqExploreRepeatedFields ( bqclient, projectName, datasetName, tableName ):
           if ( sqr[0] == 1 ):
             ## print ( f'    > {g.name:22}  {g.field_type:10}  {g.mode:10} always repeated {sqr[3]} time(s)' )
             print ( '    > {name:22}  {field_type:10}  {mode:10} always repeated {n} time(s)'.format(name=g.name, field_type=g.field_type, mode=g.mode, n=sqr[3]) )
+            rdf = rdf.append ( {'field_name': f.name+'.'+g.name, 'field_type': g.field_type, 'field_mode':g.mode, 'n_repeats':sqr[3]}, ignore_index=True )
           else:
             ## print ( f'    > {g.name:22}  {g.field_type:10}  {g.mode:10}', sqr )        
             print ( '    > {name:22}  {field_type:10}  {mode:10} {sqr}'.format(name=g.name, field_type=g.field_type, mode=g.mode, sqr=sqr) )        
+            rdf = rdf.append ( {'field_name': f.name+'.'+g.name, 
+                            'field_type': g.field_type, 'field_mode':g.mode, 'n_repeats':'variable',
+                            'comment':'',
+                            'n_vals':sqr[0], 'n_null':sqr[1], 'n_total':sqr[2], 
+                            'common_val':sqr[3], 'common_n':sqr[4], 'common_f':sqr[5],
+                            'min_val':sqr[6], 'max_val':sqr[7], 'minR50':sqr[8], 'minR90':sqr[9]}, ignore_index=True )
         
         ## if G is a RECORD ... dig further ...
         if ( g.field_type=="RECORD" ):
@@ -509,9 +576,17 @@ def bbqExploreRepeatedFields ( bqclient, projectName, datasetName, tableName ):
               if ( sqr[0] == 1 ):
                 ## print ( f'        > {h.name:18}  {h.field_type:10}  {h.mode:10} always repeated {sqr[3]} time(s)' )
                 print ( '        > {name:18}  {field_type:10}  {mode:10} always repeated {n} time(s)'.format(name=h.name, field_type=h.field_type, mode=h.mode, n=sqr[3]) )
+                rdf = rdf.append ( {'field_name': f.name+'.'+g.name+'.'+h.name, 
+                                    'field_type': h.field_type, 'field_mode':h.mode, 'n_repeats':sqr[3]}, ignore_index=True )
               else:
                 ## print ( f'        > {h.name:18}  {h.field_type:10}  {h.mode:10}', sqr )        
-                print ( '        > {name:18}  {field_type:10}  {mode:10} {sqr}'.format(name=h.name, field_type=h.field_type, mode=h.mode, sqr=sqr) )        
+                print ( '        > {name:18}  {field_type:10}  {mode:10} {sqr}'.format(name=h.name, field_type=h.field_type, mode=h.mode, sqr=sqr) )  
+                rdf = rdf.append ( {'field_name': f.name+'.'+g.name+'.'+h.name, 
+                            'field_type': h.field_type, 'field_mode':h.mode, 'n_repeats':'variable',
+                            'comment':'',
+                            'n_vals':sqr[0], 'n_null':sqr[1], 'n_total':sqr[2], 
+                            'common_val':sqr[3], 'common_n':sqr[4], 'common_f':sqr[5],
+                            'min_val':sqr[6], 'max_val':sqr[7], 'minR50':sqr[8], 'minR90':sqr[9]}, ignore_index=True )
 
             ## if H is a RECORD ... dig further ...
             if ( h.field_type=="RECORD" ):
@@ -535,19 +610,29 @@ def bbqExploreRepeatedFields ( bqclient, projectName, datasetName, tableName ):
                   if ( sqr[0] == 1 ):
                     ## print ( f'            > {j.name:14}  {j.field_type:10}  {j.mode:10} always repeated {sqr[3]} time(s)' )
                     print ( '            > {name:14}  {field_type:10}  {mode:10} always repeated {n} time(s)'.format(name=j.name, field_type=j.field_type, mode=j.mode, n=sqr[3]) )
+                    rdf = rdf.append ( {'field_name': f.name+'.'+g.name+'.'+h.name+'.'+j.name, 
+                                        'field_type': j.field_type, 'field_mode':j.mode, 'n_repeats':sqr[3]}, ignore_index=True )
                   else:
                     ## print ( f'            > {j.name:14}  {j.field_type:10}  {j.mode:10}', sqr )        
                     print ( '            > {name:14}  {field_type:10}  {mode:10} {sqr}'.format(name=j.name, field_type=j.field_type, mode=j.mode, sqr=sqr) )        
+                    rdf = rdf.append ( {'field_name': f.name+'.'+g.name+'.'+h.name+'.'+j.name, 
+                            'field_type': j.field_type, 'field_mode':j.mode, 'n_repeats':'variable',
+                            'comment':'',
+                            'n_vals':sqr[0], 'n_null':sqr[1], 'n_total':sqr[2], 
+                            'common_val':sqr[3], 'common_n':sqr[4], 'common_f':sqr[5],
+                            'min_val':sqr[6], 'max_val':sqr[7], 'minR50':sqr[8], 'minR90':sqr[9]}, ignore_index=True )
 
                 ## hope and pray that J is not a RECORD ...
                 if ( j.field_type=="RECORD" ):
                   logging.error ( " RECORD found at {}>{}>{}>{} ??? ".format(f.name, g.name, h.name, j.name) )
+
+  print ( rdf )
               
   if ( numRF < 1 ):
     ## print ( f' no REPEATED fields found in this table' )
     print ( ' no REPEATED fields found in this table' )
              
-  return ()
+  return ( rdf )
 
 ##--------------------------------------------------------------------------------------------------
 ##
