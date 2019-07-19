@@ -8,9 +8,11 @@ from google.cloud import bigquery
 ## this function builds a query to get some basic information about a single
 ## field which is NOT of type RECORD, in the specified table
 
-## NB: the field of interest can be up to 3 layers 'deep', with a parent,
-## and a 'grandparent', in which case the names are all contained in the
-## input fNameList, with the child at the end of the list
+## NB: the field of interest can be up to 4 layers 'deep', with a parent, a 'grandparent', 
+## and a 'great-grandparent' in which case the names are all contained in the input 
+## fNameList, with the child at the end of the list
+
+## TODO: if a field is *all* Nulls, it will not show up in the output dataframe -- FIXME
 
 def bbqBuildFieldContentsQuery ( projectName, datasetName, tableName, fNameList, fTypeList, fModeList ):
   
