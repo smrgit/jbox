@@ -1,20 +1,13 @@
-#!/usr/bin/env python
 
 from google import auth
 from google.cloud import bigquery
 
+import argparse
 import bbq
 import sys
 import time
 
 ##------------------------------------------------------------------------------
-
-## !!! NB -- the strings below need to be replaced by VALID GCP 
-## !!!       project ids and a pre-existing BQ dataset name 
-YOUR_BILLING_PROJECT = "insert-valid-GCP-project-to-run-BQ-job"
-YOUR_OUTPUT_PROJECT = "insert-valid-GCP-project-to-write-BQ-table"
-YOUR_OUTPUT_DATASET = "insert-valid-BQ-dataset-name"
-
 ##------------------------------------------------------------------------------
 
 def getReady ( billingProject ):
@@ -99,48 +92,38 @@ def lookAtTable ( bqclient,
 
 ##------------------------------------------------------------------------------
 
-def main ( ):
+def main ( args ):
 
-    billingProject = YOUR_BILLING_PROJECT
+    billingProject = args.billingProject
     bqclient = getReady ( billingProject )
 
     ##--------------------------------------------------------------------------
     ## we'll start with a simple table:
 
     ## define the precise location of the table of interest ...
-    sourceDataProject = "bigquery-public-data"
-    sourceBQdataset   = "github_repos"
-    sourceBQtable     = "sample_files"
+    sourceDataProject = args.sourceDataProject
+    sourceBQdataset   = args.sourceBQdataset
+    sourceBQtable     = args.sourceBQtable
 
     ## we can exclude specific field names or data types from these
     ## exhaustive 'exploratory' queries to save time/money
-    excludedNames = [ "path", "id", "symlink_target" ]
-    excludedTypes = [ ]
+    ## 
+    ## for example:  excludedNames = [ "path", "id", "symlink_target" ]
+    ##               excludedTypes = [ "INTEGER", "FLOAT" ]
+    excludedNames = args.excludedNames
+    excludedTypes = args.excludedTypes
 
     ## and if we specify an 'output' BQ dataset, we can write
     ## information about this 'source' table to the 'output' location
-    outputDataProject = YOUR_OUTPUT_PROJECT
-    outputBQdataset = YOUR_OUTPUT_DATASET
+    outputDataProject = args.outputDataProject
+    outputBQdataset = args.outputBQdataset
+
+    writeDisposition = args.writeDisposition
 
     lookAtTable ( bqclient, 
                   sourceDataProject, sourceBQdataset, sourceBQtable, 
                   excludedNames, excludedTypes,
-                  outputDataProject, outputBQdataset, 'WRITE_TRUNCATE' )
-
-    ##--------------------------------------------------------------------------
-    ## next a more complex table:
-
-    sourceDataProject = "bigquery-public-data"
-    sourceBQdataset = "human_genome_variants"
-    sourceBQtable   = "platinum_genomes_deepvariant_variants_20180823"
-
-    excludedNames = [ ]
-    excludedTypes = [ "INTEGER", "FLOAT" ]
-
-    lookAtTable ( bqclient, 
-                  sourceDataProject, sourceBQdataset, sourceBQtable, 
-                  excludedNames, excludedTypes,
-                  outputDataProject, outputBQdataset, 'WRITE_TRUNCATE' )
+                  outputDataProject, outputBQdataset, writeDisposition )
 
     return
 
@@ -149,7 +132,62 @@ def main ( ):
 if __name__ == '__main__':
 
     t0 = time.time()
-    main ( )
+
+    ## we need the following pieces of information:
+    ##     sourceDataProject -- required
+    ##     sourceBQdataset   -- required
+    ##     sourceBQtable     -- required
+    ##     outputDataProject -- if not specified, defaults to same as sourceDataProject
+    ##     outputBQdataset   -- if not specified, defaults to same as sourceBQdataset
+    ##     writeDisposition  -- default: WRITE_TRUNCATE
+    ##     billingProject    -- if not specified, defaults to same as sourceDataProject
+
+    parser = argparse.ArgumentParser()
+
+    ## the first three arguments are required -- to fully specify the BQ table of interest
+    parser.add_argument ( '-p',  '--sourceProject', action='store', help='source GCP project ID containing BQ dataset and table of interest', required=True, dest='sourceDataProject', type=str )
+    parser.add_argument ( '-d',  '--sourceDataset', action='store', help='source Big Query dataset name', required=True, dest='sourceBQdataset', type=str )
+    parser.add_argument ( '-t',  '--sourceTable',   action='store', help='source Big Query table name', required=True, dest='sourceBQtable', type=str )
+
+    ## the next two arguments are optional and only needed if the output table(s) need
+    ## to go to a different project/dataset than where the input table resides
+    parser.add_argument ( '-op', '--outputProject', action='store', help='output GCP project ID -- you must have permission to create a BQ dataset and write a table (will default to same as sourceProject)', required=False, dest='outputDataProject', type=str )
+    parser.add_argument ( '-od', '--outputDataset', action='store', help='output Big Query dataset name -- if it does not exist, it will be created (will default to same as sourceDataset)', required=False, dest='outputBQdataset', type=str )
+
+    ## this argument is also optional and defaults to WRITE_TRUNCATE
+    parser.add_argument ( '-w',  '--writeDisposition', action='store', help='what to do if the output table already exists (options are WRITE_APPEND, WRITE_EMPTY, and WRITE_TRUNCATE -- defaults to WRITE_TRUNCATE)', required=False, dest='writeDisposition', type=str, default='WRITE_TRUNCATE' )
+
+    ## this argument is only needed if the billing-project is different from the
+    ## input or output project(s) ... if not specified, this will initially default
+    ## to the output-project and if that is also not specified, it will default to
+    ## the input-project
+    parser.add_argument ( '-bp', '--billingProject', action='store', help='billing GCP project ID -- you must have permission to run a BQ query and incur charges in this project (will default to same as outputProject)', required=False, dest='billingProject', type=str )
+
+    ## finally, we can optionally EXCLUDE certain fields by name or by type
+    parser.add_argument ( '-xn', '--excludedNames', action='store', help='comma-delimited (no spaces, or enclose entire list in quotes) list of field names to be excluded from the exploratory queries', required=False, dest='xNames', type=str )
+    parser.add_argument ( '-xt', '--excludedTypes', action='store', help='comma-delimited (no spaces, or enclose entire list in quotes) list of field types to be excluded from the exploratory queries (eg INTEGER and/or FLOAT)', required=False, dest='xTypes', type=str )
+
+    args = parser.parse_args()
+
+    if ( args.outputDataProject is None ): args.outputDataProject = args.sourceDataProject
+    if ( args.outputBQdataset is None ): args.outputBQdataset = args.sourceBQdataset
+
+    if ( args.billingProject is None ): args.billingProject = args.outputDataProject
+
+    ## parse out the strings from the xNames and xTypes comma-delimited arguments
+    args.excludedNames = [ ]
+    args.excludedTypes = [ ]
+    if ( args.xNames is not None ): args.excludedNames = [ n.strip() for n in args.xNames.split(',') ]
+    if ( args.xTypes is not None ): args.excludedTypes = [ n.strip() for n in args.xTypes.split(',') ]
+
+##     print ( excludedNames )
+##     print ( excludedTypes )
+## 
+##     print ( args )
+##     sys.exit(-1)
+
+    main ( args )
+
     t1 = time.time()
 
     print ( ' --> time taken in seconds: {dt}'.format(dt=(t1-t0)) )
