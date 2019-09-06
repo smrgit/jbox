@@ -11,7 +11,8 @@ rm -fr $f.h
 rm -fr $f.n
 
 head -1 $f >& $f.h
-~/scripts/transpose $f.h >& $f.ht
+## ~/scripts/transpose $f.h >& $f.ht
+~/git_home/smrgit/jbox/bbq/transpose $f.h >& $f.ht
 
 sed -e '1d' $f > $f.n
 wc -l $f
