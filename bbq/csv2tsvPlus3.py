@@ -167,6 +167,9 @@ if __name__ == '__main__':
 
   args = parser.parse_args()
 
+  if ( args.nSkip is None ): args.nSkip = 1
+  if ( args.nSkip < 1 ): args.nSkip = 1
+
   main ( args )
 
   t1 = time.time()
