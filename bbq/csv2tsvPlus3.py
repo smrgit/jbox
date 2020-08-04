@@ -8,6 +8,36 @@ import  time
 
 def cleanToken ( a ):
 
+  keep_a = a
+
+  spec_chars = [ '\\', '\r', '\n', '\t', '"' ]
+
+  for s in spec_chars:
+    while ( a.find(s) >= 0 ): 
+      b = a.replace ( s, ' ' )    
+      a = b
+
+  a = a.strip()
+
+  if ( a == '{}' ): a = ''
+  if ( a == '[]' ): a = ''
+  if ( a.lower() == 'na' ): a = ''
+  if ( a.lower() == 'n/a' ): a = ''
+  if ( a.lower() == 'unspecified' ): a = ''
+  if ( a == ':' ):  a = ''
+
+  if ( 0 ):
+    if ( a != keep_a ):
+      print ( "  --> effects of cleanToken  : " )
+      print ( "          before: ", keep_a )
+      print ( "          after:  ", a )
+
+  return ( a )
+
+##------------------------------------------------------------------------------
+
+def cleanTokenOLD ( a ):
+
   double_chars = [ '||', ' |', '| ' ]
   for d in double_chars:
     if ( a.find(d) >= 0 ): 
@@ -23,7 +53,6 @@ def cleanToken ( a ):
       a = b
     if ( a.startswith(d) ): a = a[2:]
     if ( a.endswith(d) ): a = a[:-2]
-
 
   spec_chars = [ '\\', '\r', '\n', '\t' ]
   for s in spec_chars:
@@ -49,6 +78,9 @@ def cleanToken ( a ):
 
 def main ( args ):
 
+  print ( " " )
+  print ( " " )
+  print ( " RUNNING csv2tsvPlus3.py ... " )
   print ( args )
 
   try:
@@ -77,14 +109,16 @@ def main ( args ):
   
   numIn = 0
   numOut = 0
+
+  iLine = 0
   
   for u in csv.reader(fhIn):
-    ## print " "
-    ## print " -------------------------------------------------------------- "
-    ## print " "
-    ## print u
-    ## print len(u)
-    ## print " "
+    
+    iLine += 1
+
+    ## print ( "\n\n" )
+    ## print ( " in csv.reader loop ... ", iLine, len(u) )
+    ## print ( u )
   
     ## check the number of tokens ...
     if ( numIn < 1 ):
@@ -92,13 +126,15 @@ def main ( args ):
     else:
       if ( mCol != len(u) ):
         print ( " (a) ERROR: invalid number of columns ??? " )
-        print ( u )
+        ## print ( u )
         print ( len(u), mCol )
-        sys.exit(-1)
+        print ( " SKIPPING THIS INPUT  ROW !!! ", iLine )
+        continue
 
     ## decide if we're going to skip this one or not ...
     if ( numIn%args.nSkip != 0 ):
 
+      ## print ( " skipping based on nSkip ... " )
       pass
 
     else:
@@ -106,6 +142,10 @@ def main ( args ):
       v = []
       for a in u:
         b = cleanToken ( a )
+        if ( b.find('"') >= 0 ):
+            print ( " WARNING DOUBLE QUOTES !!! " )
+            ## print ( b )
+            print ( " " )
         v += [ b ]
       ## print v
       ## print len(v)
@@ -113,8 +153,9 @@ def main ( args ):
     
       if ( mCol != len(v) ):
         print ( " (b) ERROR: invalid number of columns ??? " )
-        print ( v )
+        ## print ( v )
         print ( len(u), len(v), mCol )
+        pritn ( " HOW CAN THIS EVER HAPPEN ??? " )
         sys.exit(-1)
     
       outLine = "\t".join(v)
@@ -144,18 +185,6 @@ if __name__ == '__main__':
 
   t0 = time.time()
 
-  ## we need the following pieces of information:
-  ##     inputFileName     -- required
-  ##     outputFileName    -- required
-
-  ##     sourceDataProject -- required
-  ##     sourceBQdataset   -- required
-  ##     sourceBQtable     -- required
-  ##     outputDataProject -- if not specified, defaults to same as sourceDataProject
-  ##     outputBQdataset   -- if not specified, defaults to same as sourceBQdataset
-  ##     writeDisposition  -- default: WRITE_TRUNCATE
-  ##     billingProject    -- if not specified, defaults to same as sourceDataProject
-
   parser = argparse.ArgumentParser()
 
   ## the first two arguments are required -- to fully specify the BQ table of interest
@@ -175,5 +204,7 @@ if __name__ == '__main__':
   t1 = time.time()
 
   print ( ' --> time taken in seconds: {dt}'.format(dt=(t1-t0)) )
+  print ( ' ' )
+  print ( ' ' )
 
 ##------------------------------------------------------------------------------
