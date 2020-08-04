@@ -1,3 +1,4 @@
+#!/bin/bash
 
 f=$1
 
@@ -12,7 +13,8 @@ rm -fr $f.n
 
 head -1 $f >& $f.h
 ## ~/scripts/transpose $f.h >& $f.ht
-~/git_home/smrgit/jbox/bbq/transpose $f.h >& $f.ht
+## ~/git_home/smrgit/jbox/bbq/transpose $f.h >& $f.ht
+cat $f.h | datamash transpose > $f.ht
 
 sed -e '1d' $f > $f.n
 wc -l $f
@@ -21,7 +23,8 @@ wc -l $f.n
 echo " "
 echo " "
 
-maxK=`wc -l $f.ht | sed -e '1,$s/ /	/g' | cut -f1`
+## maxK=`wc -l $f.ht | sed -e '1,$s/ /	/g' | cut -f1`
+maxK=`wc -l $f.ht | sed -e 's/^[ \t]*//' | sed -e 's/ /	/g' | cut -f1`
 echo $maxK
 
 echo " "
@@ -37,7 +40,7 @@ for k in $(eval echo "{1..$maxK}")
         rm -fr $f.t
         rm -fr $f.s
         cut -f $k $f.n >& $f.t
-        sort -T /home/sheila_reynolds/scratch $f.t | uniq -c | sort -T /home/sheila_reynolds/scratch -nr >& $f.s
+        sort -T /Users/sheila/scratch $f.t | uniq -c | sort -T /Users/sheila/scratch -nr >& $f.s
         wc -l $f.s >> $f.look
         head -10 $f.s >> $f.look
         tail -10 $f.s >> $f.look
