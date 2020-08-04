@@ -309,7 +309,7 @@ def bbqExploreFieldContents ( bqclient,
 
   ## initialize a dataframe for the results
   resultsColumns = [ 'field_name', 'field_type', 'field_mode', 'n_fields', 'comment',
-                     'n_vals', 'n_null', 'n_total', 'common_val', 'common_n', 'common_f',
+                     'n_vals', 'n_null', 'n_blank', 'n_total', 'common_val', 'common_n', 'common_f',
                      'min_val', 'max_val', 'minR50', 'minR90' ]
   rdf = pd.DataFrame(columns=resultsColumns)
 
@@ -376,9 +376,9 @@ def bbqExploreFieldContents ( bqclient,
                           rdf = rdf.append ( {'field_name': f.name+'.'+g.name+'.'+h.name+'.'+j.name, 
                                         'field_type': j.field_type, 'field_mode':j.mode, 'n_fields':len(j.fields),
                                         'comment':'',
-                                        'n_vals':sqr[0], 'n_null':sqr[1], 'n_total':sqr[2], 
-                                        'common_val':sqr[3], 'common_n':sqr[4], 'common_f':sqr[5],
-                                        'min_val':sqr[6], 'max_val':sqr[7], 'minR50':sqr[8], 'minR90':sqr[9]}, ignore_index=True )
+                                        'n_vals':sqr[0], 'n_null':sqr[1], 'n_blank':sqr[2], 'n_total':sqr[3], 
+                                        'common_val':sqr[4], 'common_n':sqr[5], 'common_f':sqr[6],
+                                        'min_val':sqr[7], 'max_val':sqr[8], 'minR50':sqr[9], 'minR90':sqr[10]}, ignore_index=True )
                   else:
                     ## print ( f'        > {j.name:18}  {j.field_type:10}  {j.mode:10} (this field was excluded)' )
                     if ( verbose ): print ( '        > {name:14}  {field_type:10}  {mode:10} (this field was excluded)'.format(name=j.name, field_type=j.field_type, mode=j.mode) )   
@@ -409,9 +409,9 @@ def bbqExploreFieldContents ( bqclient,
                       rdf = rdf.append ( {'field_name': f.name+'.'+g.name+'.'+h.name, 
                                     'field_type': h.field_type, 'field_mode':h.mode, 'n_fields':len(h.fields),
                                     'comment':'',
-                                    'n_vals':sqr[0], 'n_null':sqr[1], 'n_total':sqr[2], 
-                                    'common_val':sqr[3], 'common_n':sqr[4], 'common_f':sqr[5],
-                                    'min_val':sqr[6], 'max_val':sqr[7], 'minR50':sqr[8], 'minR90':sqr[9]}, ignore_index=True )
+                                    'n_vals':sqr[0], 'n_null':sqr[1], 'n_blank':sqr[2], 'n_total':sqr[3], 
+                                    'common_val':sqr[4], 'common_n':sqr[5], 'common_f':sqr[6],
+                                    'min_val':sqr[7], 'max_val':sqr[8], 'minR50':sqr[9], 'minR90':sqr[10]}, ignore_index=True )
               else:
                 ## print ( f'        > {h.name:18}  {h.field_type:10}  {h.mode:10} (this field was excluded)' )
                 if ( verbose ): print ( '        > {name:18}  {field_type:10}  {mode:10} (this field was excluded)'.format(name=h.name, field_type=h.field_type, mode=h.mode) )
@@ -441,9 +441,9 @@ def bbqExploreFieldContents ( bqclient,
                   rdf = rdf.append ( {'field_name': f.name+'.'+g.name, 
                                 'field_type': g.field_type, 'field_mode':g.mode, 'n_fields':len(g.fields),
                                 'comment':'',
-                                'n_vals':sqr[0], 'n_null':sqr[1], 'n_total':sqr[2], 
-                                'common_val':sqr[3], 'common_n':sqr[4], 'common_f':sqr[5],
-                                'min_val':sqr[6], 'max_val':sqr[7], 'minR50':sqr[8], 'minR90':sqr[9]}, ignore_index=True )
+                                'n_vals':sqr[0], 'n_null':sqr[1], 'n_blank':sqr[2], 'n_total':sqr[3], 
+                                'common_val':sqr[4], 'common_n':sqr[5], 'common_f':sqr[6],
+                                'min_val':sqr[7], 'max_val':sqr[8], 'minR50':sqr[9], 'minR90':sqr[10]}, ignore_index=True )
           else:
             ## print ( f'    > {g.name:22}  {g.field_type:10}  {g.mode:10} (this field was excluded)' )
             if ( verbose ): print ( '    > {name:22}  {field_type:10}  {mode:10} (this field was excluded)'.format(name=g.name, field_type=g.field_type, mode=g.mode) )
@@ -471,9 +471,9 @@ def bbqExploreFieldContents ( bqclient,
               rdf = rdf.append ( {'field_name': f.name, 
                             'field_type': f.field_type, 'field_mode':f.mode, 'n_fields':len(f.fields),
                             'comment':'',
-                            'n_vals':sqr[0], 'n_null':sqr[1], 'n_total':sqr[2], 
-                            'common_val':sqr[3], 'common_n':sqr[4], 'common_f':sqr[5],
-                            'min_val':sqr[6], 'max_val':sqr[7], 'minR50':sqr[8], 'minR90':sqr[9]}, ignore_index=True )
+                            'n_vals':sqr[0], 'n_null':sqr[1], 'n_blank':sqr[2], 'n_total':sqr[3], 
+                            'common_val':sqr[4], 'common_n':sqr[5], 'common_f':sqr[6],
+                            'min_val':sqr[7], 'max_val':sqr[8], 'minR50':sqr[9], 'minR90':sqr[10]}, ignore_index=True )
       else:
         ## print ( f'{f.name:28}  {f.field_type:10}  {f.mode:10} (this field was excluded)' )
         if ( verbose ): print ( '{name:28}  {field_type:10}  {mode:10} (this field was excluded)'.format(name=f.name, field_type=f.field_type, mode=f.mode) )
@@ -493,7 +493,7 @@ def bbqExploreRepeatedFields ( bqclient,
 
   ## initialize a dataframe for the results
   resultsColumns = [ 'field_name', 'field_type', 'field_mode', 'n_repeats', 'comment',
-                     'n_vals', 'n_null', 'n_total', 'common_val', 'common_n', 'common_f',
+                     'n_vals', 'n_null', 'n_blank', 'n_total', 'common_val', 'common_n', 'common_f',
                      'min_val', 'max_val', 'minR50', 'minR90' ]
   rdf = pd.DataFrame(columns=resultsColumns)
 
@@ -524,9 +524,9 @@ def bbqExploreRepeatedFields ( bqclient,
         rdf = rdf.append ( {'field_name': f.name, 
                             'field_type': f.field_type, 'field_mode':f.mode, 'n_repeats':'variable',
                             'comment':'',
-                            'n_vals':sqr[0], 'n_null':sqr[1], 'n_total':sqr[2], 
-                            'common_val':sqr[3], 'common_n':sqr[4], 'common_f':sqr[5],
-                            'min_val':sqr[6], 'max_val':sqr[7], 'minR50':sqr[8], 'minR90':sqr[9]}, ignore_index=True )
+                            'n_vals':sqr[0], 'n_null':sqr[1], 'n_blank':sqr[2], 'n_total':sqr[3], 
+                            'common_val':sqr[4], 'common_n':sqr[5], 'common_f':sqr[6],
+                            'min_val':sqr[7], 'max_val':sqr[8], 'minR50':sqr[9], 'minR90':sqr[10]}, ignore_index=True )
     
     ## if F is a RECORD ... dig further ...
     if ( f.field_type=="RECORD" ):
@@ -557,9 +557,9 @@ def bbqExploreRepeatedFields ( bqclient,
             rdf = rdf.append ( {'field_name': f.name+'.'+g.name, 
                             'field_type': g.field_type, 'field_mode':g.mode, 'n_repeats':'variable',
                             'comment':'',
-                            'n_vals':sqr[0], 'n_null':sqr[1], 'n_total':sqr[2], 
-                            'common_val':sqr[3], 'common_n':sqr[4], 'common_f':sqr[5],
-                            'min_val':sqr[6], 'max_val':sqr[7], 'minR50':sqr[8], 'minR90':sqr[9]}, ignore_index=True )
+                            'n_vals':sqr[0], 'n_null':sqr[1], 'n_blank':sqr[2], 'n_total':sqr[3], 
+                            'common_val':sqr[4], 'common_n':sqr[5], 'common_f':sqr[6],
+                            'min_val':sqr[7], 'max_val':sqr[8], 'minR50':sqr[9], 'minR90':sqr[10]}, ignore_index=True )
         
         ## if G is a RECORD ... dig further ...
         if ( g.field_type=="RECORD" ):
@@ -591,9 +591,9 @@ def bbqExploreRepeatedFields ( bqclient,
                 rdf = rdf.append ( {'field_name': f.name+'.'+g.name+'.'+h.name, 
                             'field_type': h.field_type, 'field_mode':h.mode, 'n_repeats':'variable',
                             'comment':'',
-                            'n_vals':sqr[0], 'n_null':sqr[1], 'n_total':sqr[2], 
-                            'common_val':sqr[3], 'common_n':sqr[4], 'common_f':sqr[5],
-                            'min_val':sqr[6], 'max_val':sqr[7], 'minR50':sqr[8], 'minR90':sqr[9]}, ignore_index=True )
+                            'n_vals':sqr[0], 'n_null':sqr[1], 'n_blank':sqr[2], 'n_total':sqr[3], 
+                            'common_val':sqr[4], 'common_n':sqr[5], 'common_f':sqr[6],
+                            'min_val':sqr[7], 'max_val':sqr[8], 'minR50':sqr[9], 'minR90':sqr[10]}, ignore_index=True )
 
             ## if H is a RECORD ... dig further ...
             if ( h.field_type=="RECORD" ):
@@ -625,9 +625,9 @@ def bbqExploreRepeatedFields ( bqclient,
                     rdf = rdf.append ( {'field_name': f.name+'.'+g.name+'.'+h.name+'.'+j.name, 
                             'field_type': j.field_type, 'field_mode':j.mode, 'n_repeats':'variable',
                             'comment':'',
-                            'n_vals':sqr[0], 'n_null':sqr[1], 'n_total':sqr[2], 
-                            'common_val':sqr[3], 'common_n':sqr[4], 'common_f':sqr[5],
-                            'min_val':sqr[6], 'max_val':sqr[7], 'minR50':sqr[8], 'minR90':sqr[9]}, ignore_index=True )
+                            'n_vals':sqr[0], 'n_null':sqr[1], 'n_blank':sqr[2], 'n_total':sqr[3], 
+                            'common_val':sqr[4], 'common_n':sqr[5], 'common_f':sqr[6],
+                            'min_val':sqr[7], 'max_val':sqr[8], 'minR50':sqr[9], 'minR90':sqr[10]}, ignore_index=True )
 
                 ## hope and pray that J is not a RECORD ...
                 if ( j.field_type=="RECORD" ):
@@ -720,7 +720,7 @@ def bbqSummarizeQueryResults ( qr ):
     ## if we have at least one row, then ...
     if ( nVals > 0 ):
       logging.debug ( "\n", qr.head() )
-      
+
       ## are there any null values?
       ## fnull = qr['f'].isnull()
       qin = qr [ qr['f'].isnull() ]
@@ -734,8 +734,26 @@ def bbqSummarizeQueryResults ( qr ):
       ## create a subset excluding the null row (if there is one) ...
       ## and if there's nothing left, then we're done here ...
       qnn = qr [ ~qr['f'].isnull() ]
+      ## print ( qnn )
       if ( len(qnn) < 1): return ( 0, numNull )
-      
+
+      ## print ( " --> len(qnn) = ", len(qnn) )
+
+      ## in addition to null rows, there might also be rows that contain *blank* strings ...
+      try:
+        qblank = qr [ qr['f'].str.strip().eq('') ]
+        if ( len(qblank) > 0 ):
+          numBlank = qblank['n'].sum()
+          logging.debug ( " BLANK values found: ", numBlank )
+          ## create a new subset excluding the blank row(s) ...
+          qnn = qnn [ ~qnn['f'].str.strip().eq('') ]
+        else:
+          numBlank = 0
+          logging.debug ( " ZERO blank values found ... ")
+      except:
+          numBlank = 0
+          logging.debug ( " ZERO blank values found ... ")
+     
       ## number of unique non-null field values
       nVals = len(qnn)
 
@@ -744,31 +762,48 @@ def bbqSummarizeQueryResults ( qr ):
       logging.debug ( " nTot = {} ".format(nTot) )
 
       ## get the most frequent non-null value and the # of times it occurs      
-      cV = qnn['f'].iloc[0]
-      cN = qnn['n'].iloc[0]      
-      cF = float(cN)/float(nTot)
+      try:
+          cV = qnn['f'].iloc[0]
+      except:
+          cV = '?'
+      try:
+          cN = qnn['n'].iloc[0]      
+          cF = float(cN)/float(nTot)
+      except:
+          cN = 0
+          cF = 0
       logging.debug ( " most common value: {} {} {} ".format(cV,cN,cF) )
       
       ## get the 'minimum' and 'maximum' values ...
-      minV = min ( qnn['f'] )
-      maxV = max ( qnn['f'] )
+      try:
+          minV = min ( qnn['f'] )
+          maxV = max ( qnn['f'] )
+      except:
+          minV = '?'
+          maxV = '?'
       
       ## figure out how many unique values represent 50% and 90% of that total
-      nT50 = int ( 0.50 * nTot )
-      nT90 = int ( 0.90 * nTot )
-      mTmp = 0
-      iR = 0
-      while ( mTmp < nT50 and iR < nVals ):
-        mTmp += qnn['n'].iloc[iR]
-        iR += 1
-      mR50 = iR
-      while ( mTmp < nT90 and iR < nVals ):
-        mTmp += qnn['n'].iloc[iR]
-        iR += 1
-      mR90 = iR
+      if ( nTot > 1 ):
+          nT50 = int ( 0.50 * nTot )
+          nT90 = int ( 0.90 * nTot )
+          mTmp = 0
+          iR = 0
+          while ( mTmp < nT50 and iR < nVals ):
+            mTmp += qnn['n'].iloc[iR]
+            iR += 1
+          mR50 = iR
+          while ( mTmp < nT90 and iR < nVals ):
+            mTmp += qnn['n'].iloc[iR]
+            iR += 1
+          mR90 = iR
+      else:
+          mR50 = 0
+          mR90 = 0
+          mTmp = 0
+          iR = 0
       logging.debug ( " mTmp = {}   iR = {} ".format(mTmp,iR) )
 
-      return ( nVals, numNull, nTot, cV, cN, cF, minV, maxV, mR50, mR90 )
+      return ( nVals, numNull, numBlank, nTot, cV, cN, cF, minV, maxV, mR50, mR90 )
       
     else: 
       return ( 0, 0 )
