@@ -68,7 +68,7 @@ if ( 0 ):
 
 
 ## how about BRAF on GRCh37?
-if ( 1 ):
+if ( 0 ):
     server = "http://grch37.rest.ensembl.org/"
     ext = "lookup/symbol/homo_sapiens/BRAF?"
     con = "application/json"
@@ -82,7 +82,7 @@ if ( 1 ):
     r = fetch_endpoint(server, ext, con)
     pprint ( r )
 
-if ( 1 ):
+if ( 0 ):
     ## this works for the GRCh38 endpoint ...
     server = "http://rest.ensembl.org/"
     ext = "variant_recoder/human/BRAF:c.1045G>T?"
