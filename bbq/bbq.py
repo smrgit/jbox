@@ -1,5 +1,6 @@
 import logging
 import pandas as pd
+import sys
 import time
 
 from google.cloud import bigquery
@@ -16,6 +17,8 @@ from google.cloud import bigquery
 
 def bbqBuildFieldContentsQuery ( projectName, datasetName, tableName, fNameList, fTypeList, fModeList ):
   
+  print ( ' ... in bbqBuildFieldContentsQuery ... ' )
+
   logging.debug ( projectName, datasetName, tableName )
   logging.debug ( fNameList, len(fNameList) )
   
@@ -26,6 +29,8 @@ def bbqBuildFieldContentsQuery ( projectName, datasetName, tableName, fNameList,
   if ( fdepth == 1 ):
     fName = fNameList[0]
     fMode = fModeList[0]
+
+    print ( '     ... ', fName, fMode )
     
     if ( fMode=="REPEATED" ):
       ## construct a query for a REPEATED field
@@ -49,6 +54,8 @@ def bbqBuildFieldContentsQuery ( projectName, datasetName, tableName, fNameList,
     pMode = fModeList[0]
     fMode = fModeList[1]
     
+    print ( '     ... ', fName, fMode, pName, pMode )
+
     if ( fMode=="REPEATED" ):
       qString = """
         WITH t1 AS ( SELECT f FROM `{projectName}.{datasetName}.{tableName}` AS t, t.{pName} AS u, u.{fName} AS f )
@@ -77,6 +84,8 @@ def bbqBuildFieldContentsQuery ( projectName, datasetName, tableName, fNameList,
     gpMode = fModeList[0]
     pMode  = fModeList[1]
     fMode  = fModeList[2]
+
+    print ( '     ... ', f, fMode, p, pMode, gp, gpMode )
 
     if ( fMode=="REPEATED" and pMode=="REPEATED" and gpMode=="REPEATED" ):
       ## print ( gp, p, f, fMode )
@@ -129,6 +138,8 @@ def bbqBuildFieldContentsQuery ( projectName, datasetName, tableName, fNameList,
     pMode = fModeList[2]
     fMode = fModeList[3]
 
+    print ( '     ... ', f, fMode, p, pMode, gp, gpMode, ggp, ggpMode )
+
     if ( fMode=="NULLABLE" and pMode=="REPEATED" and gpMode=="NULLABLE" and ggpMode=="REPEATED" ):
       qString = """
         WITH t1 AS ( SELECT v.{fName} AS f 
@@ -180,6 +191,8 @@ def bbqBuildFieldContentsQuery ( projectName, datasetName, tableName, fNameList,
 
 def bbqBuildRepeatedFieldsQuery ( projectName, datasetName, tableName, fNameList, fTypeList, fModeList ):
   
+  print ( ' ... in bbqBuildRepeatedFieldsQuery ... ' )
+
   logging.debug ( projectName, datasetName, tableName )
   logging.debug ( fNameList, len(fNameList) )
   
@@ -284,9 +297,14 @@ def bbqBuildRepeatedFieldsQuery ( projectName, datasetName, tableName, fNameList
 ## 
 
 def bbqCheckQueryResults ( qr ):
+
+  print ( ' ... in bbqCheckQueryResults ... ' )
+
   logging.debug ( "\n in bbqCheckQueryResults ... " )
+  logging.debug ( "         ", type(qr) )
   if ( not isinstance(qr, pd.DataFrame) ):
     logging.error ( " in bbqCheckQueryResults ... invalid results! " )
+    sys.exit(-1)
     return ( False )
   else:
     if ( len(qr) > 0 ): 
@@ -306,6 +324,8 @@ def bbqExploreFieldContents ( bqclient,
                               projectName, datasetName, tableName, 
                               excludedNames, excludedTypes,
                               verbose=True ):
+
+  print ( ' ... in bbqExploreFieldContents ... ' )
 
   ## initialize a dataframe for the results
   resultsColumns = [ 'field_name', 'field_type', 'field_mode', 'n_fields', 'comment',
@@ -491,6 +511,8 @@ def bbqExploreRepeatedFields ( bqclient,
                                projectName, datasetName, tableName,
                                verbose=True ):
 
+  print ( ' ... in bbqExploreRepeatedFields ... ' )
+
   ## initialize a dataframe for the results
   resultsColumns = [ 'field_name', 'field_type', 'field_mode', 'n_repeats', 'comment',
                      'n_vals', 'n_null', 'n_blank', 'n_total', 'common_val', 'common_n', 'common_f',
@@ -547,19 +569,22 @@ def bbqExploreRepeatedFields ( bqclient,
                                             [f.mode, g.mode] )
           qr = bbqRunQuery ( bqclient, qs )
           sqr = bbqSummarizeQueryResults ( qr )
-          if ( sqr[0] == 1 ):
-            ## print ( f'    > {g.name:22}  {g.field_type:10}  {g.mode:10} always repeated {sqr[3]} time(s)' )
-            if ( verbose ): print ( '    > {name:22}  {field_type:10}  {mode:10} always repeated {n} time(s)'.format(name=g.name, field_type=g.field_type, mode=g.mode, n=sqr[3]) )
-            rdf = rdf.append ( {'field_name': f.name+'.'+g.name, 'field_type': g.field_type, 'field_mode':g.mode, 'n_repeats':sqr[3]}, ignore_index=True )
+          if ( len(sqr) == 0 ):
+            print ( ' --> nothing back from bbqSummarizeQueryResults ? ' )
           else:
-            ## print ( f'    > {g.name:22}  {g.field_type:10}  {g.mode:10}', sqr )        
-            if ( verbose ): print ( '    > {name:22}  {field_type:10}  {mode:10} {sqr}'.format(name=g.name, field_type=g.field_type, mode=g.mode, sqr=sqr) )        
-            rdf = rdf.append ( {'field_name': f.name+'.'+g.name, 
-                            'field_type': g.field_type, 'field_mode':g.mode, 'n_repeats':'variable',
-                            'comment':'',
-                            'n_vals':sqr[0], 'n_null':sqr[1], 'n_blank':sqr[2], 'n_total':sqr[3], 
-                            'common_val':sqr[4], 'common_n':sqr[5], 'common_f':sqr[6],
-                            'min_val':sqr[7], 'max_val':sqr[8], 'minR50':sqr[9], 'minR90':sqr[10]}, ignore_index=True )
+            if ( sqr[0] == 1 ):
+              ## print ( f'    > {g.name:22}  {g.field_type:10}  {g.mode:10} always repeated {sqr[3]} time(s)' )
+              if ( verbose ): print ( '    > {name:22}  {field_type:10}  {mode:10} always repeated {n} time(s)'.format(name=g.name, field_type=g.field_type, mode=g.mode, n=sqr[3]) )
+              rdf = rdf.append ( {'field_name': f.name+'.'+g.name, 'field_type': g.field_type, 'field_mode':g.mode, 'n_repeats':sqr[3]}, ignore_index=True )
+            else:
+              ## print ( f'    > {g.name:22}  {g.field_type:10}  {g.mode:10}', sqr )        
+              if ( verbose ): print ( '    > {name:22}  {field_type:10}  {mode:10} {sqr}'.format(name=g.name, field_type=g.field_type, mode=g.mode, sqr=sqr) )        
+              rdf = rdf.append ( {'field_name': f.name+'.'+g.name, 
+                              'field_type': g.field_type, 'field_mode':g.mode, 'n_repeats':'variable',
+                              'comment':'',
+                              'n_vals':sqr[0], 'n_null':sqr[1], 'n_blank':sqr[2], 'n_total':sqr[3], 
+                              'common_val':sqr[4], 'common_n':sqr[5], 'common_f':sqr[6],
+                              'min_val':sqr[7], 'max_val':sqr[8], 'minR50':sqr[9], 'minR90':sqr[10]}, ignore_index=True )
         
         ## if G is a RECORD ... dig further ...
         if ( g.field_type=="RECORD" ):
@@ -646,6 +671,8 @@ def bbqExploreRepeatedFields ( bqclient,
 
 def bbqRunQuery ( bqclient, qString, dryRun=False ):
 
+  print ( ' ... in bbqRunQuery ... ' )
+
   if ( qString.upper().find("SELECT") < 0 ):
     logging.error ( " >>>> bad query string <<< " )
     return ( None )
@@ -663,8 +690,10 @@ def bbqRunQuery ( bqclient, qString, dryRun=False ):
   ## run the query
   try:
     logging.debug ( "    submitting query ... " )
+    print ( '     submitting query ... ' )
     query_job = bqclient.query ( qString, job_config=job_config )
     logging.debug ( "    query job state: ", query_job.state )
+    print ( '    query job state: ', query_job.state )
   except:
     print ( "  FATAL ERROR: query submission failed " )
     return ( None )
@@ -672,15 +701,19 @@ def bbqRunQuery ( bqclient, qString, dryRun=False ):
   if ( not dryRun ):
     query_job = bqclient.get_job ( query_job.job_id )
     logging.debug ( ' Job {} is currently in state {}'.format ( query_job.job_id, query_job.state ) )
+    print ( ' Job {} is currently in state {}'.format ( query_job.job_id, query_job.state ) )
     while ( query_job.state != "DONE" ):
       time.sleep ( 1 )
       query_job = bqclient.get_job ( query_job.job_id )
       logging.debug ( ' Job {} is currently in state {}'.format ( query_job.job_id, query_job.state ) )
-  
+      print ( ' Job {} is currently in state {}'.format ( query_job.job_id, query_job.state ) )
+
   ## return results as a dataframe (or an empty dataframe for a dry-run) 
   if ( not dryRun ):
     try:
+      print ( ' ... calling to_dataframe() ... ' )
       df = query_job.to_dataframe()
+      print ( ' ... back from call ... ', type(df) )
       if ( query_job.total_bytes_processed==0 ):       
         logging.debug ( "    the results for this query were previously cached " )
       else:
@@ -707,6 +740,8 @@ def bbqRunQuery ( bqclient, qString, dryRun=False ):
 
 def bbqSummarizeQueryResults ( qr ):
   
+  print ( ' ... in bbqSummarizeQueryResults ... ' )
+
   logging.debug ( "\n in bbqSummarizeQueryResults ... " )
   
   if ( not isinstance(qr, pd.DataFrame) ):
