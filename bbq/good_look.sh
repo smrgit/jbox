@@ -35,11 +35,11 @@ for k in $(eval echo "{1..$maxK}")
         echo $k
         echo " " >> $f.look
         echo $k >> $f.look
-        cut -f $k $f.h >> $f.look
+        LC_ALL=C cut -f $k $f.h >> $f.look
 
         rm -fr $f.t
         rm -fr $f.s
-        cut -f $k $f.n >& $f.t
+        LC_ALL=C cut -f $k $f.n >& $f.t
         sort -T /Users/sheila/scratch $f.t | uniq -c | sort -T /Users/sheila/scratch -nr >& $f.s
         wc -l $f.s >> $f.look
         head -10 $f.s >> $f.look
