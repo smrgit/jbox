@@ -4,6 +4,7 @@ from google.cloud import bigquery
 
 import argparse
 import bbq
+import logging
 import sys
 import time
 
@@ -93,6 +94,14 @@ def lookAtTable ( bqclient,
 ##------------------------------------------------------------------------------
 
 def main ( args ):
+
+    ##--------------------------------------------------------------------------
+    ## set up logging
+    logger = logging.getLogger('bbq_application')
+    logger.setLevel(logging.DEBUG)
+
+    ##--------------------------------------------------------------------------
+    ## set up billing project ...
 
     billingProject = args.billingProject
     bqclient = getReady ( billingProject )
