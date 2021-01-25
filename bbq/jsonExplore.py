@@ -146,7 +146,7 @@ if __name__ == '__main__':
 
   parser = argparse.ArgumentParser()
 
-  ## the first two arguments are required -- to fully specify the BQ table of interest
+  ## the first two arguments are required
   parser.add_argument ( '-f',  '--inputFileName',  action='store', help='input JSON file', required=True, dest='inputFile', type=str )
   parser.add_argument ( '-x',  '--exploreField',   action='store', help='name of fields to be explored', required=True, dest='exploreFieldName', type=str )
 
