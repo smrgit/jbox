@@ -26,7 +26,7 @@ def cleanToken ( a ):
   if ( a.lower() == 'unspecified' ): a = ''
   if ( a == ':' ):  a = ''
 
-  if ( 0 ):
+  if ( 1 ):
     if ( a != keep_a ):
       print ( "  --> effects of cleanToken  : " )
       print ( "          before: ", keep_a )
@@ -141,6 +141,7 @@ def main ( args ):
    
       v = []
       for a in u:
+        print ( "     INDEX : ", u.index(a) )
         b = cleanToken ( a )
         if ( b.find('"') >= 0 ):
             print ( " WARNING DOUBLE QUOTES !!! " )
