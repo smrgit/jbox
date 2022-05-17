@@ -15,15 +15,19 @@ def getReady ( billingProject ):
 
     # first we need to do the AUTH step:
     try:
+        print ( ' --> trying auth.default() ' )
         ( credentials, project ) = auth.default()
     except:
         print ( 'Failed to authenticate ???' )
+        sys.exit(-1)
     
     # then we set up the BigQuery Client():
     try:
+        print ( ' --> now setting up BQ client credentials ... ' )
         bqclient = bigquery.Client(credentials=credentials, project=billingProject)
     except:
         print ( 'Failed to initialize BigQuery client ??? ')
+        sys.exit(-1)
 
     return ( bqclient )
 
