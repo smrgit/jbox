@@ -12,7 +12,7 @@ import  time
 def main ( args ):
 
   print ( " " )
-  print ( " in tryExplode ... ", args )
+  print ( " in jsonExplode ... ", args )
   print ( " " )
 
   try:
@@ -34,7 +34,7 @@ def main ( args ):
   print ( " back from read_json ... " )
   print ( df.columns, df.shape )
   print ( df.head() )
-  print ( df.describe() )
+  ## print ( df.describe() )
 
   originalShape = df.shape
 
