@@ -42,7 +42,7 @@ def bbqBuildFieldContentsQuery ( projectName, datasetName, tableName, fNameList,
     else:
       ## construct a query for a non-REPEATED field
       qString = """
-        WITH t1 AS ( SELECT {fName} AS f FROM `{projectName}.{datasetName}.{tableName}` AS t )
+        WITH t1 AS ( SELECT `{fName}` AS f FROM `{projectName}.{datasetName}.{tableName}` AS t )
         SELECT f, COUNT(*) AS n FROM t1
         GROUP BY 1 ORDER BY 2 DESC, 1
       """.format(fName=fName, projectName=projectName, datasetName=datasetName, tableName=tableName)
@@ -64,13 +64,13 @@ def bbqBuildFieldContentsQuery ( projectName, datasetName, tableName, fNameList,
       """.format(pName=pName, fName=fName, projectName=projectName, datasetName=datasetName, tableName=tableName)
     elif ( pMode=="REPEATED" ):
       qString = """
-        WITH t1 AS ( SELECT u.{fName} AS f FROM `{projectName}.{datasetName}.{tableName}` AS t, t.{pName} AS u )
+        WITH t1 AS ( SELECT u.`{fName}` AS f FROM `{projectName}.{datasetName}.{tableName}` AS t, t.{pName} AS u )
         SELECT f, COUNT(*) AS n FROM t1
         GROUP BY 1 ORDER BY 2 DESC, 1
       """.format(pName=pName, fName=fName, projectName=projectName, datasetName=datasetName, tableName=tableName)       
     else:
       qString = """
-        WITH t1 AS ( SELECT {pName}.{fName} AS f FROM `{projectName}.{datasetName}.{tableName}` AS t )
+        WITH t1 AS ( SELECT `{pName}`.`{fName}` AS f FROM `{projectName}.{datasetName}.{tableName}` AS t )
         SELECT f, COUNT(*) AS n FROM t1
         GROUP BY 1 ORDER BY 2 DESC, 1
       """.format(pName=pName, fName=fName, projectName=projectName, datasetName=datasetName, tableName=tableName)      
@@ -98,7 +98,7 @@ def bbqBuildFieldContentsQuery ( projectName, datasetName, tableName, fNameList,
     elif ( fMode=="REPEATED" and pMode=="NULLABLE" and gpMode=="NULLABLE" ):
       ## print ( gp, p, f, fMode )
       qString = """
-        WITH t1 AS ( SELECT u.{pName}.{fName} AS f FROM `{projectName}.{datasetName}.{tableName}` AS t, t.{gpName} AS u )
+        WITH t1 AS ( SELECT u.`{pName}`.`{fName}` AS f FROM `{projectName}.{datasetName}.{tableName}` AS t, t.{gpName} AS u )
         SELECT f, COUNT(*) AS n FROM t1
         GROUP BY 1 ORDER BY 2 DESC, 1
       """.format(gpName=gp, pName=p, fName=f, projectName=projectName, datasetName=datasetName, tableName=tableName)                 
@@ -114,14 +114,14 @@ def bbqBuildFieldContentsQuery ( projectName, datasetName, tableName, fNameList,
     elif ( pMode=="REPEATED" ):
       ## print ( gp, p, f, fMode )
       qString = """
-        WITH t1 AS ( SELECT v.{fName} AS f FROM `{projectName}.{datasetName}.{tableName}` AS t, t.{gpName} AS u, u.{pName} AS v )
+        WITH t1 AS ( SELECT v.`{fName}` AS f FROM `{projectName}.{datasetName}.{tableName}` AS t, t.{gpName} AS u, u.{pName} AS v )
         SELECT f, COUNT(*) AS n FROM t1
         GROUP BY 1 ORDER BY 2 DESC, 1
       """.format(gpName=gp, pName=p, fName=f, projectName=projectName, datasetName=datasetName, tableName=tableName)                 
     else:
       ## print ( gp, p, f, fMode )
       qString = """
-        WITH t1 AS ( SELECT u.{pName}.{fName} AS f FROM `{projectName}.{datasetName}.{tableName}` AS t, t.{gpName} AS u )
+        WITH t1 AS ( SELECT u.`{pName}`.`{fName}` AS f FROM `{projectName}.{datasetName}.{tableName}` AS t, t.{gpName} AS u )
         SELECT f, COUNT(*) AS n FROM t1
         GROUP BY 1 ORDER BY 2 DESC, 1
       """.format(gpName=gp, pName=p, fName=f, projectName=projectName, datasetName=datasetName, tableName=tableName)                 
@@ -142,7 +142,7 @@ def bbqBuildFieldContentsQuery ( projectName, datasetName, tableName, fNameList,
 
     if ( fMode=="NULLABLE" and pMode=="REPEATED" and gpMode=="NULLABLE" and ggpMode=="REPEATED" ):
       qString = """
-        WITH t1 AS ( SELECT v.{fName} AS f 
+        WITH t1 AS ( SELECT v.`{fName}` AS f 
           FROM `{projectName}.{datasetName}.{tableName}` AS t, 
             t.{ggpName} AS u, u.{gpName}.{pName} AS v )
         SELECT f, COUNT(*) AS n FROM t1
@@ -163,7 +163,7 @@ def bbqBuildFieldContentsQuery ( projectName, datasetName, tableName, fNameList,
 
     elif ( fMode=="NULLABLE" and pMode=="REPEATED" and gpMode=="REPEATED" and ggpMode=="REPEATED" ):
       qString = """
-        WITH t1 AS ( SELECT w.{fName} AS f 
+        WITH t1 AS ( SELECT w.`{fName}` AS f 
           FROM `{projectName}.{datasetName}.{tableName}` AS t, 
             t.{ggpName} AS u, 
             u.{gpName}  AS v,
@@ -534,8 +534,14 @@ def bbqExploreRepeatedFields ( bqclient,
       numRF += 1
       qs = bbqBuildRepeatedFieldsQuery ( projectName, datasetName, tableName, 
                                         [f.name], [f.field_type], [f.mode] )
+      print ( " A : ", qs )
+
       qr = bbqRunQuery ( bqclient, qs )
+      print ( " B : ", qr )
+
       sqr = bbqSummarizeQueryResults ( qr )
+      print ( " C : ", sqr )
+
       if ( sqr[0]==1 ):
         ## print ( f'{f.name:28}  {f.field_type:10}  {f.mode:10} always repeated {sqr[3]} time(s)' )
         if ( verbose ): print ( '{name:28}  {field_type:10}  {mode:10} always repeated {n} time(s)'.format(name=f.name, field_type=f.field_type, mode=f.mode, n=sqr[3]) )
@@ -710,7 +716,8 @@ def bbqRunQuery ( bqclient, qString, dryRun=False ):
 
   ## return results as a dataframe (or an empty dataframe for a dry-run) 
   if ( not dryRun ):
-    try:
+    ## try:
+    if ( 1 ):
       print ( ' ... calling to_dataframe() ... ' )
       df = query_job.to_dataframe()
       print ( ' ... back from call ... ', type(df) )
@@ -724,10 +731,10 @@ def bbqRunQuery ( bqclient, qString, dryRun=False ):
       logging.debug ( " --> returning dataframe ... ", len(df) )
       return ( df )
 
-    except:
-      print ( "   FATAL ERROR: failed to get results as a data-frame ??? " )
-      print ( qString )
-      return ( None )
+##     except:
+##       print ( "   FATAL ERROR: failed to get results as a data-frame ??? " )
+##       print ( qString )
+##       return ( None )
     
   else:
     logging.info ( "    if not cached, this query will process {} bytes ".format(query_job.total_bytes_processed) )
