@@ -26,7 +26,7 @@ def cleanToken ( a ):
   if ( a.lower() == 'unspecified' ): a = ''
   if ( a == ':' ):  a = ''
 
-  if ( 1 ):
+  if ( 0 ):
     if ( a != keep_a ):
       print ( "  --> effects of cleanToken  : " )
       print ( "          before: ", keep_a )
